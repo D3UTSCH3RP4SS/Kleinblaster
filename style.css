@@ -1,0 +1,82 @@
+body { 
+    margin: 0; 
+    overflow: hidden; 
+    background: #000; 
+    font-family: Arial, sans-serif;
+}
+
+#startScreen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(45deg, #000000, #1a0033, #000000);
+    background-size: 300% 300%;
+    animation: gradientBG 15s ease infinite;
+    color: white;
+    z-index: 10;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+#startScreen h1 {
+    font-size: 48px;
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #0088ff;
+    margin-bottom: 50px;
+    animation: pulse 2s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.05); }
+}
+
+#startBtn, #restartBtn { 
+    padding: 15px 30px; 
+    font-size: 20px; 
+    background: #FF3366; 
+    color: white; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#startBtn:hover, #restartBtn:hover { 
+    background: #FF0055;
+}
+
+canvas { 
+    display: block; 
+    margin: 20px auto; 
+    background: black; 
+    border: 2px solid #444; 
+}
+
+#ui { 
+    position: absolute; 
+    top: 10px; 
+    left: 10px; 
+    color: white; 
+    font-family: Arial; 
+}
+
+#restartBtn { 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    display: none;
+    z-index: 20;
+}
+
+#gameScreen {
+    position: relative;
+}
