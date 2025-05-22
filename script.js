@@ -3,7 +3,7 @@
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
         const POWERUP_CHANCE = 0.2; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.01;
+        const EPICPOWER_CHANCE = 1;
 
         // Start Screen Setup
         function setupStartScreen() {
@@ -94,14 +94,14 @@ window.onload = setupStartScreen;
                 name: "Nuke",
                 color: "#e4f148",
                 duration: 10,
-                effect: () => {game.enemies = []}
+                effect: () => { game.enemies = []}
             },
 
             ALLTHEUPS: {
                 name: "AllTheUps",
                 color: "#f2860c",
-                duration: 200,
-                effect: () => {}
+                duration: 500,
+                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.fireRate = 10;}
             }
         };
 
@@ -556,6 +556,9 @@ window.onload = setupStartScreen;
         function resetEpicUp() {
             game.player.epicUp = null;
             game.player.epicUpTimer = 0;
+            if(game.player.epicUp?.name === "AllTheUps") {
+                resetPowerUp();
+            }
         }
 
         // Draw Functions
