@@ -8,9 +8,9 @@
         const bgMusic = document.getElementById("backgroundMusic");
         bgMusic.volume = 0; // Lautstärke anpassen (0.1 - 1.0)
 
-        //const SHOT_SOUNDS = Array.from({length:15},($, i) => "Shots/Laser${i +1}.mp3");
-        //const PLAYER_SHOT_VOLUME = 0.5;
-        const ENEMY_HIT_VOLUME = 1;
+        const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
+        const PLAYER_SHOT_VOLUME = 1;
+        const ENEMY_HIT_VOLUME = 0.01;
         const ENEMY_DEATH_VOLUME = 1;
         const GAME_OVER_VOLUME = 1;
         
@@ -63,7 +63,7 @@ window.onload = setupStartScreen;
             enemyMoveDown: false,
             frames: 0,
             audioContent: null,
-            shotsounds: []
+            shotSounds: []
         };
 
         // Power-Up Types
@@ -133,7 +133,7 @@ window.onload = setupStartScreen;
         };
 
 
-        /*async function loadShotSounds(){
+        async function loadShotSounds(){
             for(const soundPath of SHOT_SOUNDS){
                 try{
                     const response = await fetch(soundPath);
@@ -144,7 +144,7 @@ window.onload = setupStartScreen;
                     console.error("Fehler beim Laden der Sounds:", soundPath, error);
                 }
             }
-        }*/
+        }
 
         // Initialize Game
         async function init() {
@@ -174,7 +174,7 @@ window.onload = setupStartScreen;
             bgMusic.play();
 
             //Schusssounds laden
-            //await loadShotSounds();
+            await loadShotSounds();
             
             // Start game loop
             requestAnimationFrame(gameLoop);
@@ -207,6 +207,19 @@ window.onload = setupStartScreen;
 
         
 
+        //Player Shot sound 
+        function playRandomShotSound() {
+            if (game.shotSounds.length === 0) return;
+            
+            const source = game.audioContext.createBufferSource();
+            source.buffer = game.shotSounds[Math.floor(Math.random() * game.shotSounds.length)];
+            source.connect(game.audioContext.destination);
+            source.start();
+            source.volume = PLAYER_SHOT_VOLUME;
+        }
+
+        
+
         // Setup Controls
         function setupControls() {
         document.addEventListener('keydown', (e) => {
@@ -223,15 +236,7 @@ window.onload = setupStartScreen;
         }
 
         // SOUND-FUNKTIONEN
-        /*function playRandomShotSound() {
-            if (game.shotSounds.length === 0) return;
-            
-            const source = game.audioContext.createBufferSource();
-            source.buffer = game.shotSounds[Math.floor(Math.random() * game.shotSounds.length)];
-            source.connect(game.audioContext.destination);
-            source.start();
-            source.volume = PLAYER_SHOT_VOLUME;
-        }*/
+        
 
         function playEnemyHitSound() {
             const sound = document.getElementById("enemyHitSound");
@@ -239,6 +244,8 @@ window.onload = setupStartScreen;
             sound.volume = ENEMY_HIT_VOLUME;
             sound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
         }
+
+        
 
         function playEnemyDeathSound() {
             const sound = document.getElementById("enemyDeathSound");
@@ -398,7 +405,7 @@ window.onload = setupStartScreen;
 
             if (now - game.lastShotTime > fireRate) {
                 //sound
-                //playRandomShotSound();
+                playRandomShotSound();
                 if (game.player.laserActive === true) {
                     game.bullets.push(createBullet(game.player.x + 5));
                     game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2));
@@ -521,7 +528,7 @@ window.onload = setupStartScreen;
                 for (let j = game.enemies.length - 1; j >= 0; j--) {
                     if (checkCollision(game.bullets[i], game.enemies[j])) {
                         game.enemies[j].health = game.enemies[j].health - game.player.damage;
-                        
+                        playEnemyHitSound();
                         if (game.enemies[j].health <= 0) {
                             //sound
                             playEnemyDeathSound();
