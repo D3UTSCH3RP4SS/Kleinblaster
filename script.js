@@ -71,30 +71,40 @@ window.onload = setupStartScreen;
         // Power-Up Types
         const POWERUP_TYPES = {
             RAPID_FIRE: { 
+                //für Pulsiereffektfarbe:
+                color: "red",
                 name: "Rapid Fire", 
                 image: "Powerups/Item_Powerup_2.png", 
                 duration: 300,
                 effect: (player) => { player.rapidfire = true; }
             },
             SHIELD: { 
+                //für Pulsiereffektfarbe:
+                color: "lightblue",
                 name: "Shield", 
                 image: "Powerups/Item_Powerup_Shield_12.png", 
                 duration: 450,
                 effect: (player) => { player.hasShield = true; }
             },
             LASER: { 
+                //für Pulsiereffektfarbe:
+                color: "orange",
                 name: "Laser", 
                 image: "Powerups/Item_Powerup_Shield_0.png",
                 duration: 300,
                 effect: (player) => { player.laserActive = true; }
             },
             CANON: {
+                //für Pulsiereffektfarbe:
+                color: "cyan",
                 name: "Canon",
                 image: "Powerups/Item_Powerup_Tool_1.png",
                 duration: 500,
                 effect: (player) => { player.canonActive = true; }
             },
             EXTRALIVE: {
+                //für Pulsiereffektfarbe:
+                color: "darkred",
                 name: "Live",
                 image: "Powerups/Item_Powerup_Heart_2.png",
                 duration: 50,
@@ -106,6 +116,8 @@ window.onload = setupStartScreen;
         
         const EPICUP_TYPES = {
             NUKE: {
+                //für Pulsiereffektfarbe:
+                color: "white",
                 name: "Nuke",
                 image: "Powerups/Item_Powerup_Skull_9.png",
                 duration: 10,
@@ -127,6 +139,8 @@ window.onload = setupStartScreen;
             },
 
             ALLTHEUPS: {
+                //für Pulsiereffektfarbe:
+                color: "pink",
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
                 duration: 250,
@@ -789,6 +803,8 @@ window.onload = setupStartScreen;
             }
         }
 
+
+
         function drawPowerUps() {
             for (const powerUp of game.powerUps) {
                 const img = powerUp.type.imageObj;
@@ -807,7 +823,7 @@ window.onload = setupStartScreen;
                 game.ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
                 }
 
-                // Puls-Effekt beibehalten
+                // Puls-Effekt
                 const pulse = Math.sin(game.frames * 0.1) * 5 + 20;
                 game.ctx.strokeStyle = powerUp.color;
                 game.ctx.lineWidth = 2;
