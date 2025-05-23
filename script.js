@@ -3,7 +3,7 @@
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
         const POWERUP_CHANCE = 0.5; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0;
+        const EPICPOWER_CHANCE = 1; 
 
         // Start Screen Setup
         function setupStartScreen() {
@@ -565,7 +565,6 @@ window.onload = setupStartScreen;
         }
         
         function resetEpicUp() {
-            game.player.epicUp = null;
             game.player.epicUpTimer = 0;
             if(game.player.epicUp?.name === "AllTheUps") {
                 game.player.laserActive = false;
@@ -574,6 +573,7 @@ window.onload = setupStartScreen;
                 game.player.fireRate = null;
                 game.powerUpTimer = 0;
             }
+            game.player.epicUp = null;
         }
 
         // Draw Functions
