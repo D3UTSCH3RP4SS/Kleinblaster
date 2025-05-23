@@ -2,8 +2,18 @@
         const PLAYER_SPEED = 3;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.5; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 1; 
+        const POWERUP_CHANCE = 0.18; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0.08; // like that one ^
+
+        const bgMusic = document.getElementById("backgroundMusic");
+        bgMusic.volume = 0; // Lautstärke anpassen (0.1 - 1.0)
+
+        //const SHOT_SOUNDS = Array.from({length:15},($, i) => "Shots/Laser${i +1}.mp3");
+        //const PLAYER_SHOT_VOLUME = 0.5;
+        const ENEMY_HIT_VOLUME = 1;
+        const ENEMY_DEATH_VOLUME = 1;
+        const GAME_OVER_VOLUME = 1;
+        
 
         // Start Screen Setup
         function setupStartScreen() {
@@ -51,7 +61,9 @@ window.onload = setupStartScreen;
             enemyDirection: 1,
             enemySpeed: 1,
             enemyMoveDown: false,
-            frames: 0
+            frames: 0,
+            audioContent: null,
+            shotsounds: []
         };
 
         // Power-Up Types
@@ -60,7 +72,7 @@ window.onload = setupStartScreen;
                 name: "Rapid Fire", 
                 color: "#00FFFF", 
                 duration: 300,
-                effect: (player) => { player.fireRate = 10; }
+                effect: (player) => { player.rapidfire = true; }
             },
             SHIELD: { 
                 name: "Shield", 
@@ -95,19 +107,50 @@ window.onload = setupStartScreen;
                 name: "Nuke",
                 color: "#e4f148",
                 duration: 10,
-                effect: () => { game.enemies = []}
+                effect: () => { for(let i = game.enemies.length - 1; i >= 0; i--){
+                                    game.enemies[i].health = Math.floor(game.enemies[i].health - (game.level / 4));
+                                    if (game.enemies[i].health <= 0) {
+                                        // Chance to spawn power-up
+                                        if (Math.random() < POWERUP_CHANCE) {
+                                            spawnPowerUp(game.enemies[i].x + game.enemies[i].width / 2, game.enemies[i].y);
+                                        }else if (Math.random() < EPICPOWER_CHANCE) {
+                                            spawnEpicUp(game.enemies[i].x + game.enemies[i].width / 2, game.enemies[i].y);
+                                        }
+                                        
+                                        game.score += (game.level * 10);
+                                        game.enemies.splice(i, 1);
+                                    }
+                                }
+                }
             },
 
             ALLTHEUPS: {
                 name: "AllTheUps",
                 color: "#f2860c",
                 duration: 250,
-                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.fireRate = 10;}
+                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
             }
         };
 
+
+        /*async function loadShotSounds(){
+            for(const soundPath of SHOT_SOUNDS){
+                try{
+                    const response = await fetch(soundPath);
+                    const arrayBuffer = await response.arrayBuffer();
+                    const audioBuffer = await game.audioContext.decodeAudioData(arrayBuffer);
+                    game.shotSounds.push(audioBuffer);
+                }catch(error){
+                    console.error("Fehler beim Laden der Sounds:", soundPath, error);
+                }
+            }
+        }*/
+
         // Initialize Game
-        function init() {
+        async function init() {
+
+           
+
             game.canvas = document.getElementById('gameCanvas');
             game.ctx = game.canvas.getContext('2d');
             
@@ -123,6 +166,15 @@ window.onload = setupStartScreen;
             
             // Start first level
             startLevel();
+            	
+            //Audio Content Initialisieren
+            game.audioContent = new (window.AudioContext || window.webkitAudioContext)();
+
+            //Musik starten
+            bgMusic.play();
+
+            //Schusssounds laden
+            //await loadShotSounds();
             
             // Start game loop
             requestAnimationFrame(gameLoop);
@@ -153,6 +205,8 @@ window.onload = setupStartScreen;
 
         }
 
+        
+
         // Setup Controls
         function setupControls() {
         document.addEventListener('keydown', (e) => {
@@ -166,6 +220,38 @@ window.onload = setupStartScreen;
         if (e.key === 'ArrowRight' || e.key === 'd') game.player.isMovingRight = false;
         if (e.key === ' ') game.player.isShooting = false; //Stoppe Schießen
         });
+        }
+
+        // SOUND-FUNKTIONEN
+        /*function playRandomShotSound() {
+            if (game.shotSounds.length === 0) return;
+            
+            const source = game.audioContext.createBufferSource();
+            source.buffer = game.shotSounds[Math.floor(Math.random() * game.shotSounds.length)];
+            source.connect(game.audioContext.destination);
+            source.start();
+            source.volume = PLAYER_SHOT_VOLUME;
+        }*/
+
+        function playEnemyHitSound() {
+            const sound = document.getElementById("enemyHitSound");
+            sound.currentTime = 0;
+            sound.volume = ENEMY_HIT_VOLUME;
+            sound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
+        }
+
+        function playEnemyDeathSound() {
+            const sound = document.getElementById("enemyDeathSound");
+            sound.currentTime = 0;
+            sound.volume = ENEMY_DEATH_VOLUME;
+            sound.play().catch(e => console.log("Death-Sound fehlgeschlagen:", e));
+        }
+
+        function playGameOverSound() {
+            const sound = document.getElementById("gameOverSound");
+            sound.currentTime = 0;
+            sound.volume = GAME_OVER_VOLUME;
+            sound.play().catch(e => console.log("Game-Over-Sound fehlgeschlagen:", e));
         }
 
         // Start Level
@@ -308,9 +394,11 @@ window.onload = setupStartScreen;
         // Shoot Bullet
         function shoot() {
             const now = Date.now();
-            const fireRate = game.player.powerUp?.name === "Rapid Fire" ? 100 : 300;
+            const fireRate = game.player?.rapidfire? 100 : 300;
 
             if (now - game.lastShotTime > fireRate) {
+                //sound
+                //playRandomShotSound();
                 if (game.player.laserActive === true) {
                     game.bullets.push(createBullet(game.player.x + 5));
                     game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2));
@@ -435,6 +523,8 @@ window.onload = setupStartScreen;
                         game.enemies[j].health = game.enemies[j].health - game.player.damage;
                         
                         if (game.enemies[j].health <= 0) {
+                            //sound
+                            playEnemyDeathSound();
                             // Chance to spawn power-up
                             if (Math.random() < POWERUP_CHANCE) {
                                 spawnPowerUp(game.enemies[j].x + game.enemies[j].width / 2, game.enemies[j].y);
@@ -550,6 +640,7 @@ window.onload = setupStartScreen;
             game.player.powerUpTimer = 0;
             if(game.player.powerUp?.name === "Rapid Fire"){
                 game.player.fireRate = null;
+                game.player.rapidfire = false;
             }
             if(game.player.powerUp?.name === "Shield"){
                 game.player.hasShield = false;
@@ -571,6 +662,7 @@ window.onload = setupStartScreen;
                 game.player.hasShield = false;
                 game.player.canonActive = false;
                 game.player.fireRate = null;
+                game.player.rapidfire = false;
                 game.powerUpTimer = 0;
             }
             game.player.epicUp = null;
@@ -726,6 +818,7 @@ window.onload = setupStartScreen;
 
         // Game Over
         function gameOver() {
+            playGameOverSound();
             game.gameOver = true;
             document.getElementById('restartBtn').style.display = 'block';
         }
@@ -748,6 +841,7 @@ window.onload = setupStartScreen;
             game.player.hasShield = false;
             game.player.laserActive = false;
             game.player.canonActive = false;
+            game.player.rapidfire = false;
             game.player.damage = 1;
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
@@ -759,5 +853,4 @@ window.onload = setupStartScreen;
         /*if(game.player.powerUp){
             game.ctx.filter = 'hue-rotate(${Math.random()*360}deg)';
         }*/
-
         

@@ -9,7 +9,16 @@
         <h1>Kleinblaster</h1>
         <button id="startBtn">START GAME</button>
     </div>
-    
+    <!--Sounds-->
+    <audio id="playerShootSound" preload="auto"></audio>
+    <audio id="enemyHitSound" src="Sounds/mus_sfx_a_lithit.wav" preload="auto"></audio>
+    <audio id="enemyDeathSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
+    <audio id="gameOverSound" src="Sounds/mus_wawa.ogg" preload="auto"></audio>
+    <audio id="backgroundMusic" loop>
+        <source src="Backgroundmusic/416-8-bit-chiptune-instrumental-for-games-339237.mp3" type="audio/mpeg">
+        Dein Browser unterstützt das Audio-Element nicht.
+    </audio>
+
     <div id="gameScreen" style="display: none;">
         <div id="ui">
             <div>Score: <span id="score">0</span></div>
@@ -19,6 +28,8 @@
         <button id="restartBtn">NEU STARTEN</button>
         <canvas id="gameCanvas" width="480" height="640"></canvas>
     </div>
+
+<!--6654483500 , 49584773350-->
     
     <script src="script.js"></script>
 </body>
