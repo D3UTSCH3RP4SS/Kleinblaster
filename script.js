@@ -62,7 +62,7 @@ window.onload = setupStartScreen;
             enemySpeed: 1,
             enemyMoveDown: false,
             frames: 0,
-            audioContent: null,
+            audioContext: null,
             shotSounds: []
         };
 
@@ -132,7 +132,6 @@ window.onload = setupStartScreen;
             }
         };
 
-
         async function loadShotSounds(){
             for(const soundPath of SHOT_SOUNDS){
                 try{
@@ -168,7 +167,7 @@ window.onload = setupStartScreen;
             startLevel();
             	
             //Audio Content Initialisieren
-            game.audioContent = new (window.AudioContext || window.webkitAudioContext)();
+            game.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
             //Musik starten
             bgMusic.play();
