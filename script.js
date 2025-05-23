@@ -918,6 +918,7 @@ window.onload = setupStartScreen;
             }
         }
 
+        
         function drawBoss(){
             const img = game.bossImages.ALIEN_MONSTER;
 
@@ -940,8 +941,6 @@ window.onload = setupStartScreen;
             game.ctx.fillStyle = "red";
             game.ctx.fillRect(game.boss.x, game.boss.y - 20, healthWidth, 10);
         }
-
-
 
 
         function drawPowerUps() {
