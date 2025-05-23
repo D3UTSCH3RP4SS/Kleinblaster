@@ -6,13 +6,13 @@
         const EPICPOWER_CHANCE = 0.08; // like that one ^
 
         const bgMusic = document.getElementById("backgroundMusic");
-        bgMusic.volume = 0; // Lautstärke anpassen (0.1 - 1.0)
+        bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
-        const PLAYER_SHOT_VOLUME = 1;
+        const PLAYER_SHOT_VOLUME = 0.2;
         const ENEMY_HIT_VOLUME = 0.01;
-        const ENEMY_DEATH_VOLUME = 1;
-        const GAME_OVER_VOLUME = 1;
+        const ENEMY_DEATH_VOLUME = 0.2;
+        const GAME_OVER_VOLUME = 0.5;
         
 
         // Start Screen Setup
@@ -825,6 +825,7 @@ window.onload = setupStartScreen;
         // Game Over
         function gameOver() {
             playGameOverSound();
+            bgMusic.volume = 0;
             game.gameOver = true;
             document.getElementById('restartBtn').style.display = 'block';
         }
@@ -852,6 +853,7 @@ window.onload = setupStartScreen;
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
             startLevel();
+            bgMusic.volume = 0.1;
             requestAnimationFrame(gameLoop);
         }
 
