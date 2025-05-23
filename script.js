@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 3;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.2; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 1;
+        const POWERUP_CHANCE = 0.5; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0;
 
         // Start Screen Setup
         function setupStartScreen() {
@@ -101,7 +101,7 @@ window.onload = setupStartScreen;
             ALLTHEUPS: {
                 name: "AllTheUps",
                 color: "#f2860c",
-                duration: 500,
+                duration: 250,
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.fireRate = 10;}
             }
         };
@@ -248,7 +248,7 @@ window.onload = setupStartScreen;
             // Check for level completion
             if (game.enemies.length === 0) {
                 game.level++;
-                game.lives++;
+                //game.lives++;
                 startLevel();
             }
             
@@ -285,7 +285,7 @@ window.onload = setupStartScreen;
                 }
             }
             // Update Player damage
-            if (game.player.powerUp?.name === "Canon") {
+            if (game.player.canonActive) {
                 game.player.damage = 5;
             }else{
                 game.player.damage = 1;
@@ -546,13 +546,22 @@ window.onload = setupStartScreen;
         }
 
         function resetPowerUp() {
-            game.player.powerUp = null;
+            
             game.player.powerUpTimer = 0;
-            if()
-            game.player.fireRate = null;
-            game.player.hasShield = false;
-            game.player.laserActive = false;
-            game.player.canonActive = false;
+            if(game.player.powerUp?.name === "Rapid Fire"){
+                game.player.fireRate = null;
+            }
+            if(game.player.powerUp?.name === "Shield"){
+                game.player.hasShield = false;
+            }
+            if(game.player.powerUp?.name === "Laser"){
+                game.player.laserActive = false;
+            }
+            if(game.player.powerUp?.name === "Canon"){
+                game.player.canonActive = false;
+            }
+            game.player.powerUp = null;
+            
         }
         
         function resetEpicUp() {
