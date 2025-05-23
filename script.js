@@ -3,16 +3,16 @@
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
         const POWERUP_CHANCE = 0.18; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.08; // like that one ^
+        const EPICPOWER_CHANCE = 0.1; // like that one ^
 
         const bgMusic = document.getElementById("backgroundMusic");
         bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
         const PLAYER_SHOT_VOLUME = 0.2;
-        const ENEMY_HIT_VOLUME = 0.01;
+        const ENEMY_HIT_VOLUME = 0.001;
         const ENEMY_DEATH_VOLUME = 0.2;
-        const GAME_OVER_VOLUME = 0.5;
+        const GAME_OVER_VOLUME = 0.1;
         
 
         // Start Screen Setup
@@ -21,8 +21,10 @@
                 document.getElementById('startScreen').style.display = 'none';
                 document.getElementById('gameScreen').style.display = 'block';
                 init();
-    });
-}
+            });
+        }
+
+
 
 // Modify the window.onload to use the start screen
 window.onload = setupStartScreen;
@@ -70,31 +72,31 @@ window.onload = setupStartScreen;
         const POWERUP_TYPES = {
             RAPID_FIRE: { 
                 name: "Rapid Fire", 
-                color: "#00FFFF", 
+                image: "Powerups/Item_Powerup_2.png", 
                 duration: 300,
                 effect: (player) => { player.rapidfire = true; }
             },
             SHIELD: { 
                 name: "Shield", 
-                color: "#3366FF", 
+                image: "Powerups/Item_Powerup_Shield_12.png", 
                 duration: 450,
                 effect: (player) => { player.hasShield = true; }
             },
             LASER: { 
                 name: "Laser", 
-                color: "#FF00FF", 
-                duration: 250,
+                image: "Powerups/Item_Powerup_Shield_0.png",
+                duration: 300,
                 effect: (player) => { player.laserActive = true; }
             },
             CANON: {
                 name: "Canon",
-                color: "#8900ae",
-                duration: 200,
+                image: "Powerups/Item_Powerup_Tool_1.png",
+                duration: 500,
                 effect: (player) => { player.canonActive = true; }
             },
             EXTRALIVE: {
                 name: "Live",
-                color: "red",
+                image: "Powerups/Item_Powerup_Heart_2.png",
                 duration: 50,
                 effect: () => { game.lives++ && updateUI()}
             }
@@ -105,7 +107,7 @@ window.onload = setupStartScreen;
         const EPICUP_TYPES = {
             NUKE: {
                 name: "Nuke",
-                color: "#e4f148",
+                image: "Powerups/Item_Powerup_Skull_9.png",
                 duration: 10,
                 effect: () => { for(let i = game.enemies.length - 1; i >= 0; i--){
                                     game.enemies[i].health = Math.floor(game.enemies[i].health - (game.level / 4));
@@ -126,11 +128,25 @@ window.onload = setupStartScreen;
 
             ALLTHEUPS: {
                 name: "AllTheUps",
-                color: "#f2860c",
+                image: "Powerups/Item_Powerup_Shield_8.png",
                 duration: 250,
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
             }
         };
+
+
+        //Lade die Bilder für die Powerups
+        async function loadPowerupImages(){
+            const allTypes =[...Object.values(POWERUP_TYPES), ...Object.values(EPICUP_TYPES)];
+
+            for (const type of allTypes){
+                type.imageObj = new Image();
+                type.imageObj.src = type.image;
+                await new Promise(resolve => {
+                    type.imageObj.onload = resolve;
+                })
+            }
+        }
 
         async function loadShotSounds(){
             for(const soundPath of SHOT_SOUNDS){
@@ -193,6 +209,9 @@ window.onload = setupStartScreen;
                 img.src = src;
                 return img;
             });
+
+            //Bilder laden für Powerups
+            await loadPowerupImages();
 
             //Laden der Kugeln vom Spieler (um sie mir irgendwann zu geben x.x(war nur Spaß))
             game.bulletImage = new Image();
@@ -327,7 +346,7 @@ window.onload = setupStartScreen;
             updateEpicUps();
             checkCollisions();
             updateRows();
-            caplives();
+            //caplives();
             
             // Draw everything
             drawPlayer();
@@ -390,12 +409,12 @@ window.onload = setupStartScreen;
         }
 
         //caps lives at 5
-        function caplives() {
+        /*function caplives() {
             if(game.lives > 5){
                 game.lives = 5;
                 updateUI();
             }
-        }
+        }*/
 
         // Shoot Bullet
         function shoot() {
@@ -772,45 +791,72 @@ window.onload = setupStartScreen;
 
         function drawPowerUps() {
             for (const powerUp of game.powerUps) {
+                const img = powerUp.type.imageObj;
+                
+                if (img.complete) {
+                game.ctx.drawImage(
+                    img,
+                    powerUp.x,
+                    powerUp.y,
+                    powerUp.width,
+                    powerUp.height
+                );
+                } else {
+                // Fallback: Farbe zeichnen
                 game.ctx.fillStyle = powerUp.color;
                 game.ctx.fillRect(powerUp.x, powerUp.y, powerUp.width, powerUp.height);
-                
-                // Draw pulsing effect
+                }
+
+                // Puls-Effekt beibehalten
                 const pulse = Math.sin(game.frames * 0.1) * 5 + 20;
                 game.ctx.strokeStyle = powerUp.color;
                 game.ctx.lineWidth = 2;
                 game.ctx.beginPath();
                 game.ctx.arc(
-                    powerUp.x + powerUp.width / 2,
-                    powerUp.y + powerUp.height / 2,
-                    pulse,
-                    0,
-                    Math.PI * 2
+                powerUp.x + powerUp.width / 2,
+                powerUp.y + powerUp.height / 2,
+                pulse,
+                0,
+                Math.PI * 2
                 );
                 game.ctx.stroke();
             }
         }
-
+        
         function drawEpicUps() {
             for (const epicUp of game.epicUps) {
+                const img = epicUp.epictype.imageObj; // Bildreferenz aus dem Epic-Up-Typ
+                
+                // Versuche Bild zu zeichnen
+                if (img && img.complete) {
+                game.ctx.drawImage(
+                    img,
+                    epicUp.x,
+                    epicUp.y,
+                    epicUp.width,
+                    epicUp.height
+                );
+                } else {
+                // Fallback: Zeichne farbiges Rechteck
                 game.ctx.fillStyle = epicUp.color;
                 game.ctx.fillRect(epicUp.x, epicUp.y, epicUp.width, epicUp.height);
-                
-                // Draw pulsing effect
+                }
+
+                // Pulsierender Effekt (wie bei Power-Ups)
                 const pulse = Math.sin(game.frames * 0.1) * 5 + 20;
                 game.ctx.strokeStyle = epicUp.color;
                 game.ctx.lineWidth = 2;
                 game.ctx.beginPath();
                 game.ctx.arc(
-                    epicUp.x + epicUp.width / 2,
-                    epicUp.y + epicUp.height / 2,
-                    pulse,
-                    0,
-                    Math.PI * 2
+                epicUp.x + epicUp.width / 2,
+                epicUp.y + epicUp.height / 2,
+                pulse,
+                0,
+                Math.PI * 2
                 );
                 game.ctx.stroke();
             }
-        }
+            }
 
         function drawUI() {
             // Score, lives, level are already in HTML
@@ -820,6 +866,28 @@ window.onload = setupStartScreen;
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
+
+            // Visuelle Lebensanzeige
+            const lifeContainer = document.getElementById('lifeContainer');
+            lifeContainer.innerHTML = ''; // Alte Herzen löschen
+            
+            // Füge für jedes Leben ein Icon hinzu
+            for(let i = 0; i < game.lives; i++) {
+                const lifeIcon = document.createElement('div');
+                lifeIcon.className = 'life-icon';
+                lifeContainer.appendChild(lifeIcon);
+            }
+
+            //Begrenze Leben auf 5 und füge ausgegrautes Herz hinzu, wenn es fehlt
+            const maxLives = 5;
+            const lifeContainer2 = document.getElementById('lifeContainer');
+            lifeContainer2.innerHTML = '';
+            
+            for(let i = 0; i < maxLives; i++) {
+                const lifeIcon = document.createElement('div');
+                lifeIcon.className = `life-icon ${i < game.lives ? '' : 'empty'}`;
+                lifeContainer2.appendChild(lifeIcon);
+            }
         }
 
         // Game Over
