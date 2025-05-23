@@ -224,13 +224,13 @@ window.onload = setupStartScreen;
         document.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft' || e.key === 'a') game.player.isMovingLeft = true;
         if (e.key === 'ArrowRight' || e.key === 'd') game.player.isMovingRight = true;
-        if (e.key === ' ') game.player.isShooting = true; //Schießen bei gedrückter Leertaste
+        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w") game.player.isShooting = true; //Schießen bei gedrückter Leertaste
         });   
     
         document.addEventListener('keyup', (e) => {
         if (e.key === 'ArrowLeft' || e.key === 'a') game.player.isMovingLeft = false;
         if (e.key === 'ArrowRight' || e.key === 'd') game.player.isMovingRight = false;
-        if (e.key === ' ') game.player.isShooting = false; //Stoppe Schießen
+        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w") game.player.isShooting = false; //Stoppe Schießen
         });
         }
 
