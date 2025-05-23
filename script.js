@@ -35,6 +35,7 @@ window.onload = setupStartScreen;
                 isMovingRight: false,
                 powerUp: null,
                 powerUpTimer: 0,
+                laserActive: false,
                 epicUp: null,
                 epicUpTimer: 0,
                 damage: 1,
@@ -310,7 +311,7 @@ window.onload = setupStartScreen;
             const fireRate = game.player.powerUp?.name === "Rapid Fire" ? 100 : 300;
 
             if (now - game.lastShotTime > fireRate) {
-                if (game.player.powerUp?.name === "Laser") {
+                if (game.player.laserActive === true) {
                     game.bullets.push(createBullet(game.player.x + 5));
                     game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2));
                     game.bullets.push(createBullet(game.player.x + game.player.width - 9));
@@ -547,6 +548,7 @@ window.onload = setupStartScreen;
         function resetPowerUp() {
             game.player.powerUp = null;
             game.player.powerUpTimer = 0;
+            if()
             game.player.fireRate = null;
             game.player.hasShield = false;
             game.player.laserActive = false;
@@ -557,7 +559,11 @@ window.onload = setupStartScreen;
             game.player.epicUp = null;
             game.player.epicUpTimer = 0;
             if(game.player.epicUp?.name === "AllTheUps") {
-                resetPowerUp();
+                game.player.laserActive = false;
+                game.player.hasShield = false;
+                game.player.canonActive = false;
+                game.player.fireRate = null;
+                game.powerUpTimer = 0;
             }
         }
 
