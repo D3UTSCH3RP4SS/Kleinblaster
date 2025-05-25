@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.3; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.02; // like that one ^
+        const POWERUP_CHANCE = 0.5; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0.2; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -11,6 +11,8 @@
         const bgMusic = new Audio();
         bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
         bgMusic.loop = true;
+
+        const bossTrack = document.getElementById("bossTrack");
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
         let PLAYER_SHOT_VOLUME = 1;
@@ -28,10 +30,10 @@
             {name:"Arcarde Mode", path:"Backgroundmusic/8-bit-arcade-mode-158814.mp3"},
             {name:"Chiptune", path:"Backgroundmusic/416-8-bit-chiptune-instrumental-for-games-339237.mp3"},
             {name:"Groove", path:"Backgroundmusic/chiptune-grooving-142242.mp3"},
+            {name:"FNaF 1", path:"Backgroundmusic/FNaF 1.mp3"},
+            {name:"FNaF 2", path:"Backgroundmusic/FNaF 2.mp3"},
             {name:"Secret", path:"Backgroundmusic/Secret.mp3"}
         ];
-        
-        
 
         // Start Screen Setup
         function setupStartScreen() {
@@ -475,8 +477,13 @@ window.onload = setupStartScreen;
             //Boss erstellen bei jedem 15. Level
             if(game.level % 15 === 0){
                 spawnBoss();
+                bossTrack.volume = 0.2;
+                bossTrack.play();
+                bgMusic.pause();
             }else{
                 // Create enemy formation
+                bossTrack.pause();
+                bgMusic.play();
                 const enemyWidth = 40;
                 const enemyHeight = 30;
                 const spacing = 50;
