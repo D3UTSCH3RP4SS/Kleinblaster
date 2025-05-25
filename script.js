@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.2; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.02; // like that one ^
+        const POWERUP_CHANCE = 0.3; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0.05; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -19,11 +19,16 @@
         let ENEMY_DEATH_VOLUME = 1;
         let GAME_OVER_VOLUME = 1;
 
+        let BOSS_HIT_VOLUME = 1;
+        let BOSS_DEATH_VOLUME = 1;
+        let BOSS_ATTACK_VOLUME = 1;
+
         const SOUNDTRACKS = [
             {name:"Air Fight", path:"Backgroundmusic/8-bit-air-fight-158813.mp3"},
             {name:"Arcarde Mode", path:"Backgroundmusic/8-bit-arcade-mode-158814.mp3"},
             {name:"Chiptune", path:"Backgroundmusic/416-8-bit-chiptune-instrumental-for-games-339237.mp3"},
-            {name:"Groove", path:"Backgroundmusic/chiptune-grooving-142242.mp3"}
+            {name:"Groove", path:"Backgroundmusic/chiptune-grooving-142242.mp3"},
+            {name:"Secret", path:"Backgroundmusic/Secret.mp3"}
         ];
         
         
@@ -146,17 +151,17 @@ window.onload = setupStartScreen;
             },
             LASER: { 
                 //für Pulsiereffektfarbe:
-                color: "orange",
+                color: "purple",
                 name: "Laser", 
-                image: "Powerups/Item_Powerup_Shield_0.png",
+                image: "Powerups/Gal_Player_Shot.png",
                 duration: 300,
                 effect: (player) => { player.laserActive = true; }
             },
             CANON: {
                 //für Pulsiereffektfarbe:
-                color: "cyan",
+                color: "green",
                 name: "Canon",
-                image: "Powerups/Item_Powerup_Tool_1.png",
+                image: "Powerups/Gal_Player_DMG.png",
                 duration: 500,
                 effect: (player) => { player.canonActive = true; }
             },
@@ -378,10 +383,18 @@ window.onload = setupStartScreen;
             ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
             GAME_OVER_VOLUME = parseFloat(e.target.value);
 
+            BOSS_HIT_VOLUME = parseFloat(e.target.value) * 0.6;
+            BOSS_DEATH_VOLUME = parseFloat(e.target.value);
+            BOSS_ATTACK_VOLUME = parseFloat(e.target.value) * 0.7;
+
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
             gameOverSound.volume = GAME_OVER_VOLUME;
+
+            bossHitSound.volume = BOSS_HIT_VOLUME;
+            bossDeathSound.volume = BOSS_DEATH_VOLUME;
+            bossAttackSound.volume = BOSS_ATTACK_VOLUME;
 
             localStorage.setItem('sfxVolume', e.target.value);
 
@@ -400,18 +413,30 @@ window.onload = setupStartScreen;
             ENEMY_HIT_VOLUME = savedSfxVol * 1;
             ENEMY_DEATH_VOLUME = savedSfxVol * 1;
             GAME_OVER_VOLUME = savedSfxVol * 1;
+
+            BOSS_HIT_VOLUME = savedSfxVol * 0.5;
+            BOSS_ATTACK_VOLUME = savedSfxVol * 0.5;
+            BOSS_DEATH_VOLUME = savedSfxVol * 0.5;
             
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
             gameOverSound.volume = GAME_OVER_VOLUME;
             bgMusic.volume = savedMusicVol;
+
+            bossHitSound.volume = BOSS_HIT_VOLUME;
+            bossAttackSound.volume = BOSS_ATTACK_VOLUME;
+            bossDeathSound.volume = BOSS_DEATH_VOLUME;
         });
 
         const playerHitSound = document.getElementById("playerHitSound");
         const enemyHitSound = document.getElementById("enemyHitSound");
         const enemyDeathSound = document.getElementById("enemyDeathSound");
         const gameOverSound = document.getElementById("gameOverSound");
+
+        const bossHitSound = document.getElementById("bossHitSound");
+        const bossDeathSound = document.getElementById("bossDeathSound");
+        const bossAttackSound = document.getElementById("bossAttackSound");
 
         // SOUND-FUNKTIONEN
         function playEnemyHitSound() {
@@ -491,7 +516,8 @@ window.onload = setupStartScreen;
                 health: bossType.health * Math.floor(game.level/15),
                 maxHealth: bossType.health * Math.floor(game.level/15),
                 attackCooldown: 100,
-                phase: 1
+                phase: 1,
+                direction: 1
             };
 
         }
@@ -707,10 +733,31 @@ window.onload = setupStartScreen;
         //Updatet den Boss
         function updateBoss(){
             //Boss bewegungen 
-            game.boss.x += Math.sin(game.frames * 0.05) * 2;
+            if(game.boss){
+                // Bewegungsgeschwindigkeit
+                const BOSS_SPEED = 2;
+                // Boss-Breite berücksichtigen
+                const bossWidth = game.boss.width;
+                
+                // Update Boss Position
+                game.boss.x += BOSS_SPEED * game.boss.direction;
+                
+                // Richtung umkehren bei Randberührung
+                if(game.boss.x <= 0) {
+                    game.boss.x = 0;
+                    game.boss.direction = 1; // Nach rechts bewegen
+                }
+                if(game.boss.x + bossWidth >= game.canvas.width) {
+                    game.boss.x = game.canvas.width - bossWidth;
+                    game.boss.direction = -1; // Nach links bewegen
+                }
+            }
 
             //Angriffslogik
             if(game.boss.attackCooldown <= 0){
+                bossAttackSound.currentTime = 0;
+                bossAttackSound.play().catch(e => console.log("Error beim Laden vom Attack Sound"));
+
                 //Spezielles Angriffsmuster
                 if (game.boss.attackPattern === "wave"){
                     for(let i = 0; i < 7; i++){
@@ -769,10 +816,14 @@ window.onload = setupStartScreen;
                 for(let i = game.bullets.length - 1; i>=0; i--){
                     if(checkCollision(game.bullets[i], game.boss)){
                         game.boss.health -= game.player.damage;
-                        playEnemyHitSound();
+                        //Sound für Bosshit
+                        bossHitSound.currentTime = 0;
+                        bossHitSound.play().catch(e => console.log("Boss hit Sound Error"));
 
                         if(game.boss.health <= 0){
-                            playEnemyDeathSound();
+                            //Sound für Bossdeath
+                            bossDeathSound.currentTime = 0;
+                            bossDeathSound.play().catch(e => console.log("Boss death Sound Error"));
                             game.score += 1000 * Math.floor(game.level/15);
                             game.boss = null;
                             //Spezielle Powerups, die das Ganze Spiel lang halten
