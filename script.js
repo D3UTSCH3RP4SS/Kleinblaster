@@ -3,7 +3,7 @@
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
         const POWERUP_CHANCE = 0.3; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.05; // like that one ^
+        const EPICPOWER_CHANCE = 0.02; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
