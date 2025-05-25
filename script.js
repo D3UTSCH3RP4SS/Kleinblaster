@@ -1,18 +1,23 @@
         // Game Constants
-        const PLAYER_SPEED = 3;
+        const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.18; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.1; // like that one ^
+        const POWERUP_CHANCE = 0.2; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0.02; // like that one ^
+
+        //Boss-Leben
+        const BOSS_HEALTH_MULTIPLIER = 50;
 
         const bgMusic = document.getElementById("backgroundMusic");
         bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
         const PLAYER_SHOT_VOLUME = 0.2;
-        const ENEMY_HIT_VOLUME = 0.001;
-        const ENEMY_DEATH_VOLUME = 0.2;
+        const ENEMY_HIT_VOLUME = 0.002;
+        const ENEMY_DEATH_VOLUME = 0.9;
         const GAME_OVER_VOLUME = 0.1;
+
+        
         
 
         // Start Screen Setup
@@ -26,6 +31,8 @@
 
 
 
+
+
 // Modify the window.onload to use the start screen
 window.onload = setupStartScreen;
 
@@ -34,6 +41,7 @@ window.onload = setupStartScreen;
             canvas: null,
             ctx: null,
             score: 0,
+            highscore: 0,
             lives: 3,
             level: 1,
             gameOver: false,
@@ -66,6 +74,21 @@ window.onload = setupStartScreen;
             frames: 0,
             audioContext: null,
             shotSounds: []
+        };
+
+        //Boss Typen
+        const BOSS_TYPES = {
+            ALIEN_MONSTER: {
+                name: "Alien Riese",
+                width: 100,
+                height: 120,
+                color: "FFFFFF",
+                //eventuell können wir verschiedene Attackmuster einbauen
+                attackPattern: "wave",
+                projectileSpeed: 1,
+                health: 20,
+                image: "Pictures/playerShot.png"
+            }
         };
 
         // Power-Up Types
@@ -178,8 +201,6 @@ window.onload = setupStartScreen;
         // Initialize Game
         async function init() {
 
-           
-
             game.canvas = document.getElementById('gameCanvas');
             game.ctx = game.canvas.getContext('2d');
             
@@ -226,6 +247,14 @@ window.onload = setupStartScreen;
 
             //Bilder laden für Powerups
             await loadPowerupImages();
+
+            //Laden von Boss
+            game.bossImages = {};
+            for(const [key, boss] of Object.entries(BOSS_TYPES)){
+                const img = new Image();
+                img.src = boss.image;
+                game.bossImages[key] = img;
+            }
 
             //Laden der Kugeln vom Spieler (um sie mir irgendwann zu geben x.x(war nur Spaß))
             game.bulletImage = new Image();
@@ -295,31 +324,36 @@ window.onload = setupStartScreen;
 
         // Start Level
         function startLevel() {
+            
             // Clear existing enemies
             game.enemies = [];
             
-            // Create enemy formation
-            const enemyWidth = 40;
-            const enemyHeight = 30;
-            const spacing = 50;
-            const startX = (game.canvas.width - (ENEMY_COLS * spacing)) / 2;
-            
-            for (let row = 0; row < ENEMY_ROWS; row++) {
-                for (let col = 0; col < ENEMY_COLS; col++) {
-                    game.enemies.push({
-                        x: startX + col * spacing,
-                        y: 50 + row * spacing,
-                        width: enemyWidth,
-                        height: enemyHeight,
-                        color: getEnemyColor(row),
-                        health: Math.floor(1 + (game.level/3)), //Enemy health
-                        shootCooldown: Math.floor(Math.random() * 100)
-                    });
-                }
-            } 
 
-    
-            
+            //Boss erstellen bei jedem 15. Level
+            if(game.level % 15 === 0){
+                spawnBoss();
+            }else{
+                // Create enemy formation
+                const enemyWidth = 40;
+                const enemyHeight = 30;
+                const spacing = 50;
+                const startX = (game.canvas.width - (ENEMY_COLS * spacing)) / 2;
+                
+                for (let row = 0; row < ENEMY_ROWS; row++) {
+                    for (let col = 0; col < ENEMY_COLS; col++) {
+                        game.enemies.push({
+                            x: startX + col * spacing,
+                            y: 50 + row * spacing,
+                            width: enemyWidth,
+                            height: enemyHeight,
+                            color: getEnemyColor(row),
+                            health: Math.floor(1 + (game.level/3)), //Enemy health
+                            shootCooldown: Math.floor(Math.random() * 100)
+                        });
+                    }
+                } 
+            }
+
             // Increase enemy speed slightly each level
             if(game.enemySpeed < 1){
             game.enemySpeed = 0.5 + (game.level * 0.1);
@@ -329,12 +363,27 @@ window.onload = setupStartScreen;
             updateUI();
         }
 
+        function spawnBoss(){
+            const bossType = BOSS_TYPES.ALIEN_MONSTER;
+            game.boss = {
+                ...bossType,
+                x: game.canvas.width/2 - bossType.width/2,
+                y: 100,
+                // Erhöht das Leben späterer Bosse
+                health: bossType.health * Math.floor(game.level/15),
+                maxHealth: bossType.health * Math.floor(game.level/15),
+                attackCooldown: 100,
+                phase: 1
+            };
+
+        }
+
         function updateRows(){
             
             ENEMY_ROWS = 2 + Math.random() * game.level;
             
             if(ENEMY_ROWS > 6){
-                ENEMY_ROWS = 2 + Math.random() * game.lives;
+                ENEMY_ROWS = 2 + Math.random() * 3;
             }
         }
 
@@ -360,7 +409,7 @@ window.onload = setupStartScreen;
             updateEpicUps();
             checkCollisions();
             updateRows();
-            //caplives();
+            caplives();
             
             // Draw everything
             drawPlayer();
@@ -371,12 +420,13 @@ window.onload = setupStartScreen;
             drawUI();
             
             // Check for level completion
-            if (game.enemies.length === 0) {
+            if (game.boss) {
+                game.enemies = [];
+            }else if(game.enemies.length === 0){
                 game.level++;
                 //game.lives++;
                 startLevel();
             }
-            
 
             //Ab Level 5 mehr Leben für Gegner
             
@@ -423,12 +473,12 @@ window.onload = setupStartScreen;
         }
 
         //caps lives at 5
-        /*function caplives() {
+        function caplives() {
             if(game.lives > 5){
                 game.lives = 5;
                 updateUI();
             }
-        }*/
+        }
 
         // Shoot Bullet
         function shoot() {
@@ -455,7 +505,7 @@ window.onload = setupStartScreen;
                 y: game.player.y,
                 width: 8,  // An Bildgröße anpassen
                 height: 16, // An Bildgröße anpassen
-                speed: 10,
+                speed: 8,
                 color: game.player.powerUp?.color || "#FFFF00",
                 isPlayerBullet: true // Neu: Unterscheidung zwischen Spieler- und Gegner-Schüssen
             };
@@ -486,6 +536,13 @@ window.onload = setupStartScreen;
 
         // Update Enemies
         function updateEnemies() {
+
+            //wenn ein Boss gespawnt wird 
+            if(game.boss){
+                updateBoss();
+                return;
+            }
+
             let changeDirection = false;
             
             // Move enemies
@@ -529,6 +586,40 @@ window.onload = setupStartScreen;
             }
         }
 
+        //Updatet den Boss
+        function updateBoss(){
+            //Boss bewegungen 
+            game.boss.x += Math.sin(game.frames * 0.05) * 2;
+
+            //Angriffslogik
+            if(game.boss.attackCooldown <= 0){
+                //Spezielles Angriffsmuster
+                if (game.boss.attackPattern === "wave"){
+                    for(let i = 0; i < 7; i++){
+                        game.enemyBullets.push({
+                            x: game.boss.x + game.boss.width/2,
+                            y: game.boss.y + game.boss.height,
+                            width: 15,
+                            height: 25,
+                            speed: 0.3,
+                            angle: -Math.PI/2 + (i-3)*0.2
+                        });
+                    }
+                }
+                //lege den Cooldown für den Boss fest
+                game.boss.attackCooldown = 500;
+            } else {
+                game.boss.attackCooldown--;
+            }
+
+            //Phasenwechsel bei 50% Leben
+            if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
+                game.boss.phase = 2;
+                game.boss.attackCooldown = 300;
+                game.boss.projectileSpeed = 2;
+            }
+        }
+
         // Update Power-Ups
         function updatePowerUps() {
             for (let i = game.powerUps.length - 1; i >= 0; i--) {
@@ -555,6 +646,26 @@ window.onload = setupStartScreen;
 
         // Check Collisions
         function checkCollisions() {
+            // Spieler Kugeln gegen Boss
+            if(game.boss){
+                for(let i = game.bullets.length - 1; i>=0; i--){
+                    if(checkCollision(game.bullets[i], game.boss)){
+                        game.boss.health -= game.player.damage;
+                        playEnemyHitSound();
+
+                        if(game.boss.health <= 0){
+                            playEnemyDeathSound();
+                            game.score += 1000 * Math.floor(game.level/15);
+                            game.boss = null;
+                            //Spezielle Powerups, die das Ganze Spiel lang halten
+                            spawnVictoryPowerUps();
+                        }
+
+                        game.bullets.splice(i, 1);
+                        break;
+                    }
+                }
+            }
             // Player bullets vs enemies
             for (let i = game.bullets.length - 1; i >= 0; i--) {
                 for (let j = game.enemies.length - 1; j >= 0; j--) {
@@ -573,6 +684,7 @@ window.onload = setupStartScreen;
                             
                             game.score += (game.level * 10);
                             game.enemies.splice(j, 1);
+                            updateUI();
                         }
                         
                         game.bullets.splice(i, 1);
@@ -774,6 +886,11 @@ window.onload = setupStartScreen;
         }
 
         function drawEnemies() {
+            //Boss erstellen
+            if(game.boss){
+                drawBoss();
+                return;
+            }
             for (const enemy of game.enemies) {
                 const imgIndex = Math.min(Math.floor(enemy.y/50), game.enemyImages.length - 1);
                 const enemyImg = game.enemyImages[imgIndex];
@@ -792,8 +909,6 @@ window.onload = setupStartScreen;
                     game.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
                 }
                 
-
-
                 // Draw health bar for enemies with health > 1
                 if (enemy.health > 0) {
                      const healthWidth =  enemy.width * (enemy.health / (1 + Math.floor(game.level/3)));
@@ -802,6 +917,30 @@ window.onload = setupStartScreen;
                 }
             }
         }
+
+        function drawBoss(){
+            const img = game.bossImages.ALIEN_MONSTER;
+
+            //Boss bild erstellen
+            if(img.complete){
+                game.ctx.drawImage(
+                    img,
+                    game.boss.x,
+                    game.boss.y,
+                    game.boss.width,
+                    game.boss.height
+                );
+            }else{
+                game.ctx.fillStyle = game.boss.color;
+                game.ctx.fillRect(game.boss.x, game.boss.y, game.boss.width, game.boss.height);
+            }
+
+            //Gesundheitsbalken zeichnen
+            const healthWidth = game.boss.width * (game.boss.health / game.boss.maxHealth);
+            game.ctx.fillStyle = "red";
+            game.ctx.fillRect(game.boss.x, game.boss.y - 20, healthWidth, 10);
+        }
+
 
 
 
@@ -872,7 +1011,27 @@ window.onload = setupStartScreen;
                 );
                 game.ctx.stroke();
             }
+        }
+
+
+        function spawnVictoryPowerUps(){
+            for(let i = 0; i < 3; i++){
+                spawnPowerUp(
+                    game.canvas.width/2 - 30 + i * 30,
+                    game.canvas.height/2
+                );
             }
+            spawnEpicUp(
+                game.canvas.width/2,
+                game.canvas.height/2
+            );
+        }
+
+        function Highscore(){
+            if(game.highscore < game.score){
+            game.highscore = game.score;
+            }
+        }
 
         function drawUI() {
             // Score, lives, level are already in HTML
@@ -882,6 +1041,7 @@ window.onload = setupStartScreen;
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
+            document.getElementById('Highscore').textContent = game.highscore;
 
             // Visuelle Lebensanzeige
             const lifeContainer = document.getElementById('lifeContainer');
@@ -914,8 +1074,11 @@ window.onload = setupStartScreen;
             document.getElementById('restartBtn').style.display = 'block';
         }
 
+        
+
         // Reset Game
         function resetGame() {
+            Highscore();
             ENEMY_ROWS = 2;
             game.score = 0;
             game.lives = 3;
@@ -934,12 +1097,15 @@ window.onload = setupStartScreen;
             game.player.canonActive = false;
             game.player.rapidfire = false;
             game.player.damage = 1;
+            game.boss = false; 
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
             startLevel();
             bgMusic.volume = 0.1;
             requestAnimationFrame(gameLoop);
         }
+
+        
 
         //Einfärbung bei Power Ups
         /*if(game.player.powerUp){
