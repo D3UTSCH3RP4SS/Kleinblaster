@@ -8,15 +8,23 @@
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
 
-        const bgMusic = document.getElementById("backgroundMusic");
+        const bgMusic = new Audio();
         bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
+        bgMusic.loop = true;
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
-        let PLAYER_SHOT_VOLUME = 0.2;
-        let ENEMY_HIT_VOLUME = 0.002;
-        let ENEMY_DEATH_VOLUME = 0.9;
-        let GAME_OVER_VOLUME = 0.1;
+        let PLAYER_SHOT_VOLUME = 1;
+        let PLAYER_HIT_VOLUME = 1;
+        let ENEMY_HIT_VOLUME = 1;
+        let ENEMY_DEATH_VOLUME = 1;
+        let GAME_OVER_VOLUME = 1;
 
+        const SOUNDTRACKS = [
+            {name:"Air Fight", path:"Backgroundmusic/8-bit-air-fight-158813.mp3"},
+            {name:"Arcarde Mode", path:"Backgroundmusic/8-bit-arcade-mode-158814.mp3"},
+            {name:"Chiptune", path:"Backgroundmusic/416-8-bit-chiptune-instrumental-for-games-339237.mp3"},
+            {name:"Groove", path:"Backgroundmusic/chiptune-grooving-142242.mp3"}
+        ];
         
         
 
@@ -29,8 +37,33 @@
             });
         }
 
+        function setupMusicSelector() {
+            const select = document.getElementById('musicSelect');
+            
+            // Populate options
+            SOUNDTRACKS.forEach((track, index) => {
+                const option = document.createElement('option');
+                option.value = track.path;
+                option.textContent = track.name;
+                option.selected = localStorage.getItem('selectedTrack') === track.path;
+                select.appendChild(option);
+            });
 
+            // Event listener for track changes
+            select.addEventListener('change', function() {
+                bgMusic.pause();
+                bgMusic.src = this.value;
+                localStorage.setItem('selectedTrack', this.value);
+                bgMusic.play().catch(e => console.log("Autoplay prevented"));
+            });
 
+            // Load saved track
+            const savedTrack = localStorage.getItem('selectedTrack');
+            if(savedTrack) {
+                bgMusic.src = savedTrack;
+                select.value = savedTrack;
+            }
+        }
 
 
 // Modify the window.onload to use the start screen
@@ -231,6 +264,9 @@ window.onload = setupStartScreen;
             // Start game loop
             requestAnimationFrame(gameLoop);
 
+            //Musikauswahl laden
+            setupMusicSelector();
+
 
             //Bild laden für Spieler
             game.player.image = new Image();
@@ -342,6 +378,7 @@ window.onload = setupStartScreen;
             ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
             GAME_OVER_VOLUME = parseFloat(e.target.value);
 
+            playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
             gameOverSound.volume = GAME_OVER_VOLUME;
@@ -358,18 +395,20 @@ window.onload = setupStartScreen;
             document.getElementById('musicVolume').value = savedMusicVol;
             document.getElementById('sfxVolume').value = savedSfxVol;
 
-            PLAYER_SHOT_VOLUME = savedSfxVol;
-            ENEMY_HIT_VOLUME = savedSfxVol * 0.5;
-            ENEMY_DEATH_VOLUME = savedSfxVol;
-            GAME_OVER_VOLUME = savedSfxVol;
+            PLAYER_HIT_VOLUME = savedSfxVol * 0.5;
+            PLAYER_SHOT_VOLUME = savedSfxVol * 1;
+            ENEMY_HIT_VOLUME = savedSfxVol * 1;
+            ENEMY_DEATH_VOLUME = savedSfxVol * 1;
+            GAME_OVER_VOLUME = savedSfxVol * 1;
             
-
+            playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
             gameOverSound.volume = GAME_OVER_VOLUME;
             bgMusic.volume = savedMusicVol;
         });
 
+        const playerHitSound = document.getElementById("playerHitSound");
         const enemyHitSound = document.getElementById("enemyHitSound");
         const enemyDeathSound = document.getElementById("enemyDeathSound");
         const gameOverSound = document.getElementById("gameOverSound");
@@ -379,6 +418,12 @@ window.onload = setupStartScreen;
             enemyHitSound.currentTime = 0;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
+        }
+
+        function playPlayerHitSound(){
+            playerHitSound.currentTime = 0;
+            playerHitSound.volume = PLAYER_HIT_VOLUME;
+            playerHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
         }
 
         
@@ -770,6 +815,7 @@ window.onload = setupStartScreen;
             for (let i = game.enemyBullets.length - 1; i >= 0; i--) {
                 if (checkCollision(game.enemyBullets[i], game.player)) {
                     if (!game.player.hasShield) {
+                        playPlayerHitSound();
                         game.lives--;
                         updateUI();
                         

@@ -12,14 +12,11 @@
     </div>
     <!--Sounds-->
     <audio id="playerShootSound" preload="auto"></audio>
+    <audio id="playerHitSound" src="Sounds/pop-331049.mp3" preload="auto"></audio>
     <audio id="enemyHitSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
     <audio id="enemyDeathSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
-    <audio id="gameOverSound" src="Sounds/mus_wawa.ogg" preload="auto"></audio>
+    <audio id="gameOverSound" src="Sounds/base-de-vinheta-38-345596.mp3" preload="auto"></audio>
     <audio src="PowerupSound" src="Sounds/snd_speedup.wav"></audio>
-    <audio id="backgroundMusic" loop>
-        <source src="Backgroundmusic/416-8-bit-chiptune-instrumental-for-games-339237.mp3" type="audio/mpeg">
-        Dein Browser unterstützt das Audio-Element nicht.
-    </audio>
 
     <div id="gameScreen" style="display: none;">
         <div id="ui">
@@ -33,6 +30,11 @@
         <div id="pauseScreen" class="overlay">
             <div class="pause-menu">
                 <h2 id="headerPause">Paused</h2>
+
+                <div class="soundSelect">
+                    <label for="musicSelect">Soundtrack:</label>
+                    <select id="musicSelect" id="pause-menu-item"></select>
+                </div>
 
                 <!--Sound Einstellungen-->
                 <div class="sound-control">
