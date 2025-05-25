@@ -12,10 +12,10 @@
         bgMusic.volume = 0.1; // Lautstärke anpassen (0.1 - 1.0)
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
-        const PLAYER_SHOT_VOLUME = 0.2;
-        const ENEMY_HIT_VOLUME = 0.002;
-        const ENEMY_DEATH_VOLUME = 0.9;
-        const GAME_OVER_VOLUME = 0.1;
+        let PLAYER_SHOT_VOLUME = 0.2;
+        let ENEMY_HIT_VOLUME = 0.002;
+        let ENEMY_DEATH_VOLUME = 0.9;
+        let GAME_OVER_VOLUME = 0.1;
 
         
         
@@ -73,7 +73,9 @@ window.onload = setupStartScreen;
             enemyMoveDown: false,
             frames: 0,
             audioContext: null,
-            shotSounds: []
+            shotSounds: [],
+            isPaused: false,
+            pauseTime: 0
         };
 
         //Boss Typen
@@ -270,13 +272,16 @@ window.onload = setupStartScreen;
 
         //Player Shot sound 
         function playRandomShotSound() {
-            if (game.shotSounds.length === 0) return;
+            if (game.shotSounds.length === 0 || !game.audioContext) return;
             
             const source = game.audioContext.createBufferSource();
+            const gainNode = game.audioContext.createGain();
             source.buffer = game.shotSounds[Math.floor(Math.random() * game.shotSounds.length)];
-            source.connect(game.audioContext.destination);
-            source.start();
-            source.volume = PLAYER_SHOT_VOLUME;
+            gainNode.gain.value = PLAYER_SHOT_VOLUME;
+
+            source.connect(gainNode);
+            gainNode.connect(game.audioContext.destination);
+            source.start(0);
         }
 
         
@@ -296,30 +301,99 @@ window.onload = setupStartScreen;
         });
         }
 
-        // SOUND-FUNKTIONEN
-        
+        //Pause Screen
+        function togglePause(){
+            game.isPaused = !game.isPaused;
+            const pauseScreen = document.getElementById('pauseScreen');
 
+            //Pause Aktivieren/Deaktivieren
+            if (game.isPaused){
+                pauseScreen.style.display = "flex";
+                bgMusic.volume = 0.01;
+                game.pauseTime = Date.now();
+            }else{
+                pauseScreen.style.display = "none";
+                if(!bgMusic.paused) bgMusic.play();
+                game.lastShotTime += Date.now() - game.pauseTime;
+                requestAnimationFrame(gameLoop);
+            }
+
+            game.canvas.classList.toggle("paused", game.isPaused);
+        }
+
+        //Bei Escape oder P drücken in den Pause Modus wechseln
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' || e.key === 'p') {
+                togglePause();
+            }
+        });
+
+        document.getElementById('resumeBtn').addEventListener('click', togglePause);
+
+        //Sound Kontrolle
+        document.getElementById('musicVolume').addEventListener('input', (e) => {
+            bgMusic.volume = e.target.value;
+            localStorage.setItem('musicVolume', e.target.value);
+        });
+
+        document.getElementById('sfxVolume').addEventListener('input', (e) => {
+            
+            PLAYER_SHOT_VOLUME = parseFloat(e.target.value);
+            ENEMY_HIT_VOLUME = parseFloat(e.target.value) * 0.5;
+            ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
+            GAME_OVER_VOLUME = parseFloat(e.target.value);
+
+            enemyHitSound.volume = ENEMY_HIT_VOLUME;
+            enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
+            gameOverSound.volume = GAME_OVER_VOLUME;
+
+            localStorage.setItem('sfxVolume', e.target.value);
+
+        });
+
+        //die gespeicherten werte beim Laden wieder holen
+        window.addEventListener('load', () => {
+            const savedMusicVol = localStorage.getItem('musicVolume') || 0.1;
+            const savedSfxVol = localStorage.getItem('sfxVolume') || 0.2;
+            
+            document.getElementById('musicVolume').value = savedMusicVol;
+            document.getElementById('sfxVolume').value = savedSfxVol;
+
+            PLAYER_SHOT_VOLUME = savedSfxVol;
+            ENEMY_HIT_VOLUME = savedSfxVol * 0.5;
+            ENEMY_DEATH_VOLUME = savedSfxVol;
+            GAME_OVER_VOLUME = savedSfxVol;
+            
+
+            enemyHitSound.volume = ENEMY_HIT_VOLUME;
+            enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
+            gameOverSound.volume = GAME_OVER_VOLUME;
+            bgMusic.volume = savedMusicVol;
+        });
+
+        const enemyHitSound = document.getElementById("enemyHitSound");
+        const enemyDeathSound = document.getElementById("enemyDeathSound");
+        const gameOverSound = document.getElementById("gameOverSound");
+
+        // SOUND-FUNKTIONEN
         function playEnemyHitSound() {
-            const sound = document.getElementById("enemyHitSound");
-            sound.currentTime = 0;
-            sound.volume = ENEMY_HIT_VOLUME;
-            sound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
+            enemyHitSound.currentTime = 0;
+            enemyHitSound.volume = ENEMY_HIT_VOLUME;
+            enemyHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
         }
 
         
 
         function playEnemyDeathSound() {
-            const sound = document.getElementById("enemyDeathSound");
-            sound.currentTime = 0;
-            sound.volume = ENEMY_DEATH_VOLUME;
-            sound.play().catch(e => console.log("Death-Sound fehlgeschlagen:", e));
+            enemyDeathSound.currentTime = 0;
+            enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
+            enemyDeathSound.play().catch(e => console.log("Death-Sound fehlgeschlagen:", e));
         }
 
         function playGameOverSound() {
-            const sound = document.getElementById("gameOverSound");
-            sound.currentTime = 0;
-            sound.volume = GAME_OVER_VOLUME;
-            sound.play().catch(e => console.log("Game-Over-Sound fehlgeschlagen:", e));
+            gameOverSound.currentTime = 0;
+            gameOverSound.volume = GAME_OVER_VOLUME;
+            gameOverSound.play().catch(e => console.log("Game-Over-Sound fehlgeschlagen:", e));
         }
 
         // Start Level
@@ -394,7 +468,7 @@ window.onload = setupStartScreen;
 
         // Game Loop
         function gameLoop() {
-            if (game.gameOver) return;
+            if (game.gameOver || game.isPaused) return;
             
             game.frames++;
             

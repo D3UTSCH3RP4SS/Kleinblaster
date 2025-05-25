@@ -11,7 +11,7 @@
     </div>
     <!--Sounds-->
     <audio id="playerShootSound" preload="auto"></audio>
-    <audio id="enemyHitSound" src="Sounds/mus_sfx_a_lithit.wav" preload="auto"></audio>
+    <audio id="enemyHitSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
     <audio id="enemyDeathSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
     <audio id="gameOverSound" src="Sounds/mus_wawa.ogg" preload="auto"></audio>
     <audio src="PowerupSound" src="Sounds/snd_speedup.wav"></audio>
@@ -27,7 +27,27 @@
             <div>Highscore: <span id="Highscore">0</span></div>
             <div hidden>Lives: <span id="lives">3</span></div>
         </div>
-        
+
+        <!--Pause Screen-->
+        <div id="pauseScreen" class="overlay">
+            <div class="pause-menu">
+                <h2 id="headerPause">Paused</h2>
+
+                <!--Sound Einstellungen-->
+                <div class="sound-control">
+                    <label>Musik: </label>
+                    <input type="range" id="musicVolume" min="0" max="1" step="0.1">
+                </div>
+
+                <div class="sound-control">
+                    <label>Soundeffekte: </label>
+                    <input type="range" id="sfxVolume" min="0" max="1" step="0.1">
+                </div>
+
+                <button id="resumeBtn">Weiterspielen (ESC)</button>
+            </div>
+        </div>
+
         <button id="restartBtn">NEU STARTEN</button>
         <div class="life-container" id="lifeContainer"></div>
         <canvas id="gameCanvas" width="480" height="640"></canvas>

@@ -82,23 +82,84 @@ canvas {
     position: relative;
 }
 
-    .life-container {
-        position: absolute;
-        top: 660px;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        display: flex;
-        gap: 5px;
-    }
-    
-    .life-icon {
-        width: 32px;
-        height: 32px;
-        background-image: url('Powerups/Item_Powerup_Heart_2.png');
-        background-size: cover;
-    }
 
-    .life-icon.empty {
-        background-image: url('Powerups/Item_Powerup_DarkHeart_2.png');
-        opacity: 0.5;
-    }
+
+
+.overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.pause-menu {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.sound-control {
+    margin: 15px 0;
+    color: white;
+}
+
+#resumeBtn {
+    padding: 10px 20px;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+
+
+
+.life-container {
+    position: absolute;
+    top: 660px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 5px;
+}
+
+.life-icon {
+    width: 32px;
+    height: 32px;
+    background-image: url('Powerups/Item_Powerup_Heart_2.png');
+    background-size: cover;
+}
+
+.life-icon.empty {
+    background-image: url('Powerups/Item_Powerup_DarkHeart_2.png');
+    opacity: 0.5;
+}
+
+
+
+
+#gameCanvas::after {
+    content: "PAUSED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 2em;
+    display: none;
+}
+
+#gameCanvas.paused::after {
+    display: block;
+}
+
+#headerPause{
+
+    color:aliceblue;
+
+}
