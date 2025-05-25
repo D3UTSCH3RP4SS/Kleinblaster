@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.5; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.2; // like that one ^
+        const POWERUP_CHANCE = 0; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 1; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -13,6 +13,7 @@
         bgMusic.loop = true;
 
         const bossTrack = document.getElementById("bossTrack");
+        bossTrack.volume = 0.1;
 
         const SHOT_SOUNDS = Array.from({length:15},(_, i) => `Shots/Laser${i + 1}.mp3`);
         let PLAYER_SHOT_VOLUME = 1;
@@ -24,6 +25,7 @@
         let BOSS_HIT_VOLUME = 1;
         let BOSS_DEATH_VOLUME = 1;
         let BOSS_ATTACK_VOLUME = 1;
+        let BOSS_TRACK_VOLUME = 1;
 
         const SOUNDTRACKS = [
             {name:"Air Fight", path:"Backgroundmusic/8-bit-air-fight-158813.mp3"},
@@ -32,6 +34,7 @@
             {name:"Groove", path:"Backgroundmusic/chiptune-grooving-142242.mp3"},
             {name:"FNaF 1", path:"Backgroundmusic/FNaF 1.mp3"},
             {name:"FNaF 2", path:"Backgroundmusic/FNaF 2.mp3"},
+            {name:"Order 8bit", path:"Backgroundmusic/8-bitChiptuneRemix.mp3"},
             {name:"Secret", path:"Backgroundmusic/Secret.mp3"}
         ];
 
@@ -61,7 +64,9 @@
                 bgMusic.pause();
                 bgMusic.src = this.value;
                 localStorage.setItem('selectedTrack', this.value);
-                bgMusic.play().catch(e => console.log("Autoplay prevented"));
+                if(!game.boss){
+                    bgMusic.play().catch(e => console.log("Autoplay prevented"));
+                };
             });
 
             // Load saved track
@@ -111,6 +116,7 @@ window.onload = setupStartScreen;
             enemyDirection: 1,
             enemySpeed: 1,
             enemyMoveDown: false,
+            bosstrackisplaying: false,
             frames: 0,
             audioContext: null,
             shotSounds: [],
@@ -126,7 +132,7 @@ window.onload = setupStartScreen;
                 height: 120,
                 color: "FFFFFF",
                 //eventuell können wir verschiedene Attackmuster einbauen
-                attackPattern: "wave",
+                attackPattern: ["wave", "homing"],
                 projectileSpeed: 1,
                 health: 20,
                 image: "Pictures/playerShot.png"
@@ -147,7 +153,7 @@ window.onload = setupStartScreen;
                 //für Pulsiereffektfarbe:
                 color: "lightblue",
                 name: "Shield", 
-                image: "Powerups/Item_Powerup_Shield_12.png", 
+                image: "Powerups/Item_Powerup_Shield_12.png",
                 duration: 450,
                 effect: (player) => { player.hasShield = true; }
             },
@@ -208,7 +214,7 @@ window.onload = setupStartScreen;
                 color: "pink",
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
-                duration: 250,
+                duration: 1000000,
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
             }
         };
@@ -355,7 +361,8 @@ window.onload = setupStartScreen;
                 game.pauseTime = Date.now();
             }else{
                 pauseScreen.style.display = "none";
-                if(!bgMusic.paused) bgMusic.play();
+                if(!bgMusic.paused && !game.boss) bgMusic.play();
+                if(!bossTrack.paused) bossTrack.play();
                 game.lastShotTime += Date.now() - game.pauseTime;
                 requestAnimationFrame(gameLoop);
             }
@@ -375,6 +382,7 @@ window.onload = setupStartScreen;
         //Sound Kontrolle
         document.getElementById('musicVolume').addEventListener('input', (e) => {
             bgMusic.volume = e.target.value;
+            bossTrack.volume = e.target.value;
             localStorage.setItem('musicVolume', e.target.value);
         });
 
@@ -388,6 +396,7 @@ window.onload = setupStartScreen;
             BOSS_HIT_VOLUME = parseFloat(e.target.value) * 0.6;
             BOSS_DEATH_VOLUME = parseFloat(e.target.value);
             BOSS_ATTACK_VOLUME = parseFloat(e.target.value) * 0.7;
+            BOSS_TRACK_VOLUME = parseFloat(e.target.value);
 
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
@@ -397,6 +406,7 @@ window.onload = setupStartScreen;
             bossHitSound.volume = BOSS_HIT_VOLUME;
             bossDeathSound.volume = BOSS_DEATH_VOLUME;
             bossAttackSound.volume = BOSS_ATTACK_VOLUME;
+            bossTrack.volume = BOSS_TRACK_VOLUME;
 
             localStorage.setItem('sfxVolume', e.target.value);
 
@@ -424,7 +434,9 @@ window.onload = setupStartScreen;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
             enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
             gameOverSound.volume = GAME_OVER_VOLUME;
+
             bgMusic.volume = savedMusicVol;
+            bossTrack.volume = savedMusicVol * 0.5;
 
             bossHitSound.volume = BOSS_HIT_VOLUME;
             bossAttackSound.volume = BOSS_ATTACK_VOLUME;
@@ -477,7 +489,6 @@ window.onload = setupStartScreen;
             //Boss erstellen bei jedem 15. Level
             if(game.level % 15 === 0){
                 spawnBoss();
-                bossTrack.volume = 0.2;
                 bossTrack.play();
                 bgMusic.pause();
             }else{
@@ -523,6 +534,7 @@ window.onload = setupStartScreen;
                 health: bossType.health * Math.floor(game.level/15),
                 maxHealth: bossType.health * Math.floor(game.level/15),
                 attackCooldown: 100,
+                secondCooldown: 1000,
                 phase: 1,
                 direction: 1
             };
@@ -640,20 +652,21 @@ window.onload = setupStartScreen;
                 //sound
                 playRandomShotSound();
                 if (game.player.laserActive === true) {
-                    game.bullets.push(createBullet(game.player.x + 5));
-                    game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2));
-                    game.bullets.push(createBullet(game.player.x + game.player.width - 9));
+                    game.bullets.push(createBullet(game.player.x + 5, 0.8));
+                    game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, 0));
+                    game.bullets.push(createBullet(game.player.x + game.player.width - 9, -0.8));
                 } else {
-                    game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2));
+                    game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, 0));
                 }
                 game.lastShotTime = now;
             }
         }
 
-        function createBullet(x) {
+        function createBullet(x,spread) {
             return {
                 x: x,
                 y: game.player.y,
+                spread: spread,
                 width: 8,  // An Bildgröße anpassen
                 height: 16, // An Bildgröße anpassen
                 speed: 8,
@@ -667,6 +680,7 @@ window.onload = setupStartScreen;
             // Player bullets
             for (let i = game.bullets.length - 1; i >= 0; i--) {
                 game.bullets[i].y -= game.bullets[i].speed;
+                game.bullets[i].x -= game.bullets[i].spread;
                 
                 // Remove if off screen
                 if (game.bullets[i].y < 0) {
@@ -764,10 +778,30 @@ window.onload = setupStartScreen;
             if(game.boss.attackCooldown <= 0){
                 bossAttackSound.currentTime = 0;
                 bossAttackSound.play().catch(e => console.log("Error beim Laden vom Attack Sound"));
-
+                if(game.boss.phase === 1){
                 //Spezielles Angriffsmuster
-                if (game.boss.attackPattern === "wave"){
-                    for(let i = 0; i < 7; i++){
+                for(let i = 0; i < 7; i++){
+                    game.enemyBullets.push({
+                        x: game.boss.x + game.boss.width/2,
+                        y: game.boss.y + game.boss.height,
+                        width: 15,
+                        height: 25,
+                        speed: 0.3,
+                        angle: -Math.PI/2 + (i-3)*0.2
+                    });
+                }
+            }
+                //lege den Cooldown für den Boss fest
+                game.boss.attackCooldown = 500;
+            } else {
+                game.boss.attackCooldown--;
+            }
+
+            //Phasenwechsel bei 50% Leben
+            if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
+                game.boss.phase = 2;
+                if(game.boss.phase === 2){
+                for(let i = 0; i < 7; i++){
                         game.enemyBullets.push({
                             x: game.boss.x + game.boss.width/2,
                             y: game.boss.y + game.boss.height,
@@ -778,17 +812,6 @@ window.onload = setupStartScreen;
                         });
                     }
                 }
-                //lege den Cooldown für den Boss fest
-                game.boss.attackCooldown = 500;
-            } else {
-                game.boss.attackCooldown--;
-            }
-
-            //Phasenwechsel bei 50% Leben
-            if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
-                game.boss.phase = 2;
-                game.boss.attackCooldown = 300;
-                game.boss.projectileSpeed = 2;
             }
         }
 
@@ -1245,6 +1268,7 @@ window.onload = setupStartScreen;
         // Game Over
         function gameOver() {
             bgMusic.pause();
+            bossTrack.pause();
             game.gameOver = true;
             playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
