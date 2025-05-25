@@ -309,7 +309,6 @@ window.onload = setupStartScreen;
             //Pause Aktivieren/Deaktivieren
             if (game.isPaused){
                 pauseScreen.style.display = "flex";
-                bgMusic.volume = 0.01;
                 game.pauseTime = Date.now();
             }else{
                 pauseScreen.style.display = "none";
@@ -1142,7 +1141,7 @@ window.onload = setupStartScreen;
         // Game Over
         function gameOver() {
             playGameOverSound();
-            bgMusic.volume = 0;
+            bgMusic.pause();
             game.gameOver = true;
             document.getElementById('restartBtn').style.display = 'block';
         }
@@ -1174,7 +1173,7 @@ window.onload = setupStartScreen;
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
             startLevel();
-            bgMusic.volume = 0.1;
+            bgMusic.play();
             requestAnimationFrame(gameLoop);
         }
 
