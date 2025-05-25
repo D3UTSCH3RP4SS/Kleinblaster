@@ -408,7 +408,7 @@ window.onload = setupStartScreen;
             document.getElementById('musicVolume').value = savedMusicVol;
             document.getElementById('sfxVolume').value = savedSfxVol;
 
-            PLAYER_HIT_VOLUME = savedSfxVol * 0.5;
+            PLAYER_HIT_VOLUME = savedSfxVol * 0.4;
             PLAYER_SHOT_VOLUME = savedSfxVol * 1;
             ENEMY_HIT_VOLUME = savedSfxVol * 1;
             ENEMY_DEATH_VOLUME = savedSfxVol * 1;
@@ -1237,9 +1237,9 @@ window.onload = setupStartScreen;
 
         // Game Over
         function gameOver() {
-            playGameOverSound();
             bgMusic.pause();
             game.gameOver = true;
+            playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
         }
 
