@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 1; // like that one ^
+        const POWERUP_CHANCE = 0.4; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 0.2; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -132,7 +132,7 @@ window.onload = setupStartScreen;
                 height: 120,
                 color: "FFFFFF",
                 //eventuell können wir verschiedene Attackmuster einbauen
-                attackPattern: ["wave", "homing"],
+                attackPattern: "wave",
                 projectileSpeed: 1,
                 health: 20,
                 image: "Pictures/playerShot.png"
@@ -211,10 +211,10 @@ window.onload = setupStartScreen;
 
             ALLTHEUPS: {
                 //für Pulsiereffektfarbe:
-                color: "pink",
+                color: "silver",
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
-                duration: 1000000,
+                duration: 300,
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
             }
         };
@@ -396,7 +396,7 @@ window.onload = setupStartScreen;
             BOSS_HIT_VOLUME = parseFloat(e.target.value) * 0.6;
             BOSS_DEATH_VOLUME = parseFloat(e.target.value);
             BOSS_ATTACK_VOLUME = parseFloat(e.target.value) * 0.7;
-            BOSS_TRACK_VOLUME = parseFloat(e.target.value);
+            
 
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
@@ -406,7 +406,6 @@ window.onload = setupStartScreen;
             bossHitSound.volume = BOSS_HIT_VOLUME;
             bossDeathSound.volume = BOSS_DEATH_VOLUME;
             bossAttackSound.volume = BOSS_ATTACK_VOLUME;
-            bossTrack.volume = BOSS_TRACK_VOLUME;
 
             localStorage.setItem('sfxVolume', e.target.value);
 
@@ -751,6 +750,7 @@ window.onload = setupStartScreen;
             }
         }
 
+        let cooldown2 = 450;
         //Updatet den Boss
         function updateBoss(){
             //Boss bewegungen 
@@ -759,7 +759,6 @@ window.onload = setupStartScreen;
                 const BOSS_SPEED = 2;
                 // Boss-Breite berücksichtigen
                 const bossWidth = game.boss.width;
-                
                 // Update Boss Position
                 game.boss.x += BOSS_SPEED * game.boss.direction;
                 
@@ -778,30 +777,13 @@ window.onload = setupStartScreen;
             if(game.boss.attackCooldown <= 0){
                 bossAttackSound.currentTime = 0;
                 bossAttackSound.play().catch(e => console.log("Error beim Laden vom Attack Sound"));
-                if(game.boss.phase === 1){
-                //Spezielles Angriffsmuster
-                for(let i = 0; i < 7; i++){
-                    game.enemyBullets.push({
-                        x: game.boss.x + game.boss.width/2,
-                        y: game.boss.y + game.boss.height,
-                        width: 15,
-                        height: 25,
-                        speed: 0.3,
-                        angle: -Math.PI/2 + (i-3)*0.2
-                    });
-                }
-            }
+            
                 //lege den Cooldown für den Boss fest
-                game.boss.attackCooldown = 500;
-            } else {
-                game.boss.attackCooldown--;
-            }
-
-            //Phasenwechsel bei 50% Leben
-            if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
-                game.boss.phase = 2;
-                if(game.boss.phase === 2){
-                for(let i = 0; i < 7; i++){
+                game.boss.attackCooldown = cooldown2;
+            
+                if(game.boss.attackPattern === "wave" && game.boss.phase === 1){
+                    //Spezielles Angriffsmuster
+                    for(let i = 0; i < 7; i++){
                         game.enemyBullets.push({
                             x: game.boss.x + game.boss.width/2,
                             y: game.boss.y + game.boss.height,
@@ -811,7 +793,34 @@ window.onload = setupStartScreen;
                             angle: -Math.PI/2 + (i-3)*0.2
                         });
                     }
+                    cooldown2 = 450;
                 }
+
+                //Phasenwechsel bei 50% Leben
+                if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
+                    game.boss.phase = 2;
+                    game.boss.attackPattern = "homing";
+                }
+
+                ////////////////////////////////////////////////////Hier wird an der 2. Phase gearbeitet
+                if(game.boss.attackPattern === "homing" && game.boss.phase === 2){
+                    for(let i = 0; i < 7; i++){
+                            game.enemyBullets.push({
+                                x: (game.boss.x + game.boss.width/2),
+                                y: (game.boss.y + game.boss.height),
+                                width: 45,
+                                height: 75,
+                                speed: 0.3,
+                                angle: -Math.PI/2 + (i-3)*0.2
+                            });
+                    }
+                    cooldown2 = 300;
+                }
+                ///////////////////////////////////////////////////////////////////////////////////////
+
+
+            } else {
+                game.boss.attackCooldown--;
             }
         }
 
