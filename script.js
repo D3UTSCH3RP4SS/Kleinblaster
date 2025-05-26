@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0.4; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 0.2; // like that one ^
+        const POWERUP_CHANCE = 0; // 0.1 = 10% chance when enemy dies
+        const EPICPOWER_CHANCE = 1; // like that one ^
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -533,7 +533,7 @@ window.onload = setupStartScreen;
                 health: bossType.health * Math.floor(game.level/15),
                 maxHealth: bossType.health * Math.floor(game.level/15),
                 attackCooldown: 100,
-                secondCooldown: 1000,
+                secondCooldown: 100,
                 phase: 1,
                 direction: 1
             };
@@ -689,10 +689,26 @@ window.onload = setupStartScreen;
             
             // Enemy bullets
             for (let i = game.enemyBullets.length - 1; i >= 0; i--) {
-                game.enemyBullets[i].y += 4;
+                const bullet = game.enemyBullets[i];
+
+                if(bullet.isHoming){
+                    const speed = bullet.speed;
+
+                    if(game.frames % 10 === 0){
+                        const dx = game.player.x + game.player.width/2 - bullet.x;
+                        const dy = game.player.y + game.player.height/2 - bullet.y;
+                        bullet.angle = Math.atan2(dy, dx);
+                    }
+
+                    bullet.x += Math.cos(bullet.angle) * speed;
+                    bullet.y += Math.sin(bullet.angle) * speed;
+
+                }else{
+                    bullet.y += bullet.speed;
+                }
                 
                 // Remove if off screen
-                if (game.enemyBullets[i].y > game.canvas.height) {
+                if (bullet.y > game.canvas.height) {
                     game.enemyBullets.splice(i, 1);
                 }
             }
@@ -725,7 +741,7 @@ window.onload = setupStartScreen;
                         y: enemy.y + enemy.height,
                         width: 4,
                         height: 15,
-                        speed: 0.2,
+                        speed: 6,
                         color: "#FF5555"
                     });
                     enemy.shootCooldown = 50 + Math.floor(Math.random() * 50);
@@ -789,8 +805,7 @@ window.onload = setupStartScreen;
                             y: game.boss.y + game.boss.height,
                             width: 15,
                             height: 25,
-                            speed: 0.3,
-                            angle: -Math.PI/2 + (i-3)*0.2
+                            speed: 7
                         });
                     }
                     cooldown2 = 450;
@@ -800,24 +815,25 @@ window.onload = setupStartScreen;
                 if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
                     game.boss.phase = 2;
                     game.boss.attackPattern = "homing";
+                    const dx = game.player.x + game.player.width/2 - (game.boss.x + game.boss.width/2);
+                    const dy = game.player.y + game.player.height/2 - (game.boss.y + game.boss.height);
+                    const angle = Math.atan2(dy, dx);
                 }
 
-                ////////////////////////////////////////////////////Hier wird an der 2. Phase gearbeitet
+                //2. Bossphase
                 if(game.boss.attackPattern === "homing" && game.boss.phase === 2){
-                    for(let i = 0; i < 7; i++){
+                    for(let i = 0; i < 5; i++){
                             game.enemyBullets.push({
-                                x: (game.boss.x + game.boss.width/2),
-                                y: (game.boss.y + game.boss.height),
+                                x: game.boss.x + game.boss.width/2,
+                                y: game.boss.y + game.boss.height,
                                 width: 45,
                                 height: 75,
-                                speed: 0.3,
-                                angle: -Math.PI/2 + (i-3)*0.2
+                                speed: 7
                             });
                     }
                     cooldown2 = 300;
                 }
-                ///////////////////////////////////////////////////////////////////////////////////////
-
+                
 
             } else {
                 game.boss.attackCooldown--;
@@ -1235,10 +1251,16 @@ window.onload = setupStartScreen;
             );
         }
 
+        
+
         function Highscore(){
+
+            
+
             if(game.highscore < game.score){
             game.highscore = game.score;
             }
+            localStorage.setItem("highscore", game.highscore);
         }
 
         function drawUI() {
@@ -1246,10 +1268,11 @@ window.onload = setupStartScreen;
         }
 
         function updateUI() {
+            let savedHighscore = localStorage.getItem("highscore");
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
-            document.getElementById('Highscore').textContent = game.highscore;
+            document.getElementById('Highscore').textContent = savedHighscore;
 
             // Visuelle Lebensanzeige
             const lifeContainer = document.getElementById('lifeContainer');
