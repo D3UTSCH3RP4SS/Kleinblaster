@@ -395,6 +395,7 @@ window.onload = setupStartScreen;
 
         document.getElementById('sfxVolume').addEventListener('input', (e) => {
             
+            PLAYER_HIT_VOLUME = parseFloat(e.target.value);
             PLAYER_SHOT_VOLUME = parseFloat(e.target.value);
             ENEMY_HIT_VOLUME = parseFloat(e.target.value) * 0.5;
             ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
@@ -639,8 +640,8 @@ window.onload = setupStartScreen;
                 EPICPOWER_CHANCE = 1;
                 POWERUP_CHANCE = 0;
             }else{
-                EPICPOWER_CHANCE = 0.01;//here 
-                POWERUP_CHANCE = 0.25;//You can change the Power and Epicup Chance
+                EPICPOWER_CHANCE = 1;//here 
+                POWERUP_CHANCE = 0;//You can change the Power and Epicup Chance
             }
 
             if (game.player.isShooting) {
@@ -709,16 +710,14 @@ window.onload = setupStartScreen;
                 const bullet = game.enemyBullets[i];
 
                 if(bullet.isHoming){
-                    const speed = bullet.speed;
 
-                    if(game.frames % 10 === 0){
-                        const dx = game.player.x + game.player.width/2 - bullet.x;
-                        const dy = game.player.y + game.player.height/2 - bullet.y;
-                        bullet.angle = Math.atan2(dy, dx);
-                    }
-
-                    bullet.x += Math.cos(bullet.angle) * speed;
-                    bullet.y += Math.sin(bullet.angle) * speed;
+                    
+                    /*const dx = game.player.x + game.player.width/2 - bullet.x;
+                    const dy = game.player.y + game.player.height/2 - bullet.y;
+                    bullet.angle = Math.atan2(dy, dx);*/
+                    
+                    bullet.x += Math.cos(bullet.angle) * bullet.speed;
+                    bullet.y += Math.sin(bullet.angle) * bullet.speed;
 
                 }else{
                     bullet.y += bullet.speed;
@@ -758,7 +757,7 @@ window.onload = setupStartScreen;
                         y: enemy.y + enemy.height,
                         width: 4,
                         height: 15,
-                        speed: 6,
+                        speed: 4,
                         color: "#FF5555"
                     });
                     enemy.shootCooldown = 50 + Math.floor(Math.random() * 50);
@@ -839,13 +838,23 @@ window.onload = setupStartScreen;
 
                 //2. Bossphase
                 if(game.boss.attackPattern === "homing" && game.boss.phase === 2){
+                    const playerX = game.player.x + game.player.width/2;
+                    const playerY = game.player.y + game.player.height/2;
+
                     for(let i = 0; i < 5; i++){
+
+                        const dx = playerX - (game.boss.x + game.boss.width/2);
+                        const dy = playerY - (game.boss.y + game.boss.height);
+                        const angle = Math.atan2(dy, dx);
+
                             game.enemyBullets.push({
                                 x: game.boss.x + game.boss.width/2,
                                 y: game.boss.y + game.boss.height,
                                 width: 45,
                                 height: 75,
-                                speed: 7
+                                speed: 1,
+                                angle: angle,
+                                isHoming: true
                             });
                     }
                     cooldown2 = 300;
