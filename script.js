@@ -88,7 +88,7 @@ window.onload = setupStartScreen;
             score: 0,
             highscore: 0,
             lives: 3,
-            level: 1,
+            level: 14,
             gameOver: false,
             player: {
                 x: 0,
@@ -112,6 +112,7 @@ window.onload = setupStartScreen;
             enemies: [],
             powerUps: [],
             epicUps: [],
+            constUps: [],
             lastShotTime: 0,
             enemyDirection: 1,
             enemySpeed: 1,
@@ -227,9 +228,20 @@ window.onload = setupStartScreen;
             }
         };
 
+        
+        const CONSTUP_TYPES = {
+            DAMAGEBOOST:{
+                color: "red",
+                name: "DamageBoost",
+                image: "Powerups/Placeholder.jpg",
+                effect: () => {bossDamage()}
+            }
+        };
+
+
         //Lade die Bilder für die Powerups
         async function loadPowerupImages(){
-            const allTypes =[...Object.values(POWERUP_TYPES), ...Object.values(EPICUP_TYPES)];
+            const allTypes =[...Object.values(POWERUP_TYPES), ...Object.values(EPICUP_TYPES), ...Object.values(CONSTUP_TYPES)];
 
             for (const type of allTypes){
                 type.imageObj = new Image();
@@ -397,7 +409,7 @@ window.onload = setupStartScreen;
             
             PLAYER_HIT_VOLUME = parseFloat(e.target.value);
             PLAYER_SHOT_VOLUME = parseFloat(e.target.value);
-            ENEMY_HIT_VOLUME = parseFloat(e.target.value) * 0.5;
+            ENEMY_HIT_VOLUME = parseFloat(e.target.value);
             ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
             GAME_OVER_VOLUME = parseFloat(e.target.value);
 
@@ -427,15 +439,15 @@ window.onload = setupStartScreen;
             document.getElementById('musicVolume').value = savedMusicVol;
             document.getElementById('sfxVolume').value = savedSfxVol;
 
-            PLAYER_HIT_VOLUME = savedSfxVol * 0.4;
-            PLAYER_SHOT_VOLUME = savedSfxVol * 1;
-            ENEMY_HIT_VOLUME = savedSfxVol * 1;
-            ENEMY_DEATH_VOLUME = savedSfxVol * 1;
+            PLAYER_HIT_VOLUME = savedSfxVol * 0.7;
+            PLAYER_SHOT_VOLUME = savedSfxVol * 0.7;
+            ENEMY_HIT_VOLUME = savedSfxVol * 0.1;
+            ENEMY_DEATH_VOLUME = savedSfxVol * 0.05;
             GAME_OVER_VOLUME = savedSfxVol * 1;
 
             BOSS_HIT_VOLUME = savedSfxVol * 0.5;
             BOSS_ATTACK_VOLUME = savedSfxVol * 0.5;
-            BOSS_DEATH_VOLUME = savedSfxVol * 0.5;
+            BOSS_DEATH_VOLUME = savedSfxVol * 1;
             
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
@@ -577,6 +589,7 @@ window.onload = setupStartScreen;
             updateEnemies();
             updatePowerUps();
             updateEpicUps();
+            updateConstUps();
             checkCollisions();
             updateRows();
             caplives();
@@ -587,6 +600,7 @@ window.onload = setupStartScreen;
             drawEnemies();
             drawPowerUps();
             drawEpicUps();
+            drawConstUps();
             drawUI();
             
             // Check for level completion
@@ -605,6 +619,12 @@ window.onload = setupStartScreen;
         }
 
         // Update Player
+        let CanonDamage = game.player.damage + 5;
+
+        function bossDamage(){ 
+            CanonDamage += 10;
+        }
+
         function updatePlayer() {
             // Movement
             if (game.player.isMovingLeft && game.player.x > 0) {
@@ -630,18 +650,20 @@ window.onload = setupStartScreen;
                 }
             }
             // Update Player damage
+
             if (game.player.canonActive) {
-                game.player.damage = 5;
+                game.player.damage = CanonDamage;
+                updateUI();
             }else{
-                game.player.damage = 1;
+                updateUI();
             }
 
             if(game.player.luckActive){
                 EPICPOWER_CHANCE = 1;
                 POWERUP_CHANCE = 0;
             }else{
-                EPICPOWER_CHANCE = 1;//here 
-                POWERUP_CHANCE = 0;//You can change the Power and Epicup Chance
+                EPICPOWER_CHANCE = 0.01;//here
+                POWERUP_CHANCE = 0.25;//You can change the Power and Epicup Chance
             }
 
             if (game.player.isShooting) {
@@ -712,9 +734,11 @@ window.onload = setupStartScreen;
                 if(bullet.isHoming){
 
                     
-                    /*const dx = game.player.x + game.player.width/2 - bullet.x;
+                    const dx = game.player.x + game.player.width/2 - bullet.x;
                     const dy = game.player.y + game.player.height/2 - bullet.y;
-                    bullet.angle = Math.atan2(dy, dx);*/
+                    if(game.canvas.height/1.7 > bullet.y){
+                    bullet.angle = Math.atan2(dy, dx);
+                    }
                     
                     bullet.x += Math.cos(bullet.angle) * bullet.speed;
                     bullet.y += Math.sin(bullet.angle) * bullet.speed;
@@ -849,10 +873,28 @@ window.onload = setupStartScreen;
 
                             game.enemyBullets.push({
                                 x: game.boss.x + game.boss.width/2,
-                                y: game.boss.y + game.boss.height,
-                                width: 45,
-                                height: 75,
+                                y: game.boss.y + game.boss.height - 20,
+                                width: 20,
+                                height: 20,
                                 speed: 2,
+                                angle: angle,
+                                isHoming: true
+                            });
+                            game.enemyBullets.push({
+                                x: game.boss.x + game.boss.width/2,
+                                y: game.boss.y + game.boss.height - 10,
+                                width: 30,
+                                height: 30,
+                                speed: 2.1,
+                                angle: angle,
+                                isHoming: true
+                            });
+                            game.enemyBullets.push({
+                                x: game.boss.x + game.boss.width/2,
+                                y: game.boss.y + game.boss.height,
+                                width: 40,
+                                height: 40,
+                                speed: 2.2,
                                 angle: angle,
                                 isHoming: true
                             });
@@ -886,6 +928,15 @@ window.onload = setupStartScreen;
                 // Remove if off screen
                 if (game.epicUps[i].y > game.canvas.height) {
                     game.epicUps.splice(i, 1);
+                }
+            }
+        }
+
+        function updateConstUps(){
+            for(let i = game.constUps.length - 1; i >= 0; i--){
+                game.constUps[i].y += 2;
+                if(game.constUps[i].y > game.canvas.height){
+                    game.constUps.splice(i, 1);
                 }
             }
         }
@@ -975,6 +1026,15 @@ window.onload = setupStartScreen;
                     game.epicUps.splice(i, 1);
                 }
             }
+
+            // Const ups vs player
+            for (let i = game.constUps.length - 1; i >= 0; i--){
+                if(checkCollision(game.constUps[i], game.player)){
+                    activateConstUp(game.constUps[i].constType);
+                    game.constUps.splice(i, 1);
+                    updateUI();
+                }
+            }
         }
 
         function checkCollision(obj1, obj2) {
@@ -1015,6 +1075,20 @@ window.onload = setupStartScreen;
             });
         }
 
+        function spawnConstUp(x, y){
+            const constTypes = Object.values(CONSTUP_TYPES);
+            const constType = constTypes[Math.floor(Math.random() * constTypes.length)];
+
+            game.constUps.push({
+                x: x - 15,
+                y: y,
+                width: 30,
+                height: 30,
+                constType: constType,
+                color: constType.color
+            })
+        }
+
         function activatePowerUp(type) {
             // Reset current power-up if exists
             if (game.player.powerUp) {
@@ -1035,6 +1109,10 @@ window.onload = setupStartScreen;
             game.player.epicUp = epictype;
             game.player.epicUpTimer = epictype.duration;
             epictype.effect(game.player);
+        }
+
+        function activateConstUp(constType){
+            constType.effect(game.player);
         }
 
         function resetPowerUp() {
@@ -1265,17 +1343,46 @@ window.onload = setupStartScreen;
             }
         }
 
+        function drawConstUps(){
+            for(const constUp of game.constUps){
+                const img = constUp.constType.imageObj; // Bildreferenz aus dem Const-Up-Typ
+                
+                // Versuche Bild zu zeichnen
+                if (img && img.complete) {
+                game.ctx.drawImage(
+                    img,
+                    constUp.x,
+                    constUp.y,
+                    constUp.width,
+                    constUp.height
+                );
+                } else {
+                // Fallback: Zeichne farbiges Rechteck
+                game.ctx.fillStyle = constUp.color;
+                game.ctx.fillRect(constUp.x, constUp.y, constUp.width, constUp.height);
+                }
+
+                // Pulsierender Effekt (wie bei Power-Ups)
+                const pulse = Math.sin(game.frames * 0.1) * 5 + 20;
+                game.ctx.strokeStyle = constUp.color;
+                game.ctx.lineWidth = 2;
+                game.ctx.beginPath();
+                game.ctx.arc(
+                constUp.x + constUp.width / 2,
+                constUp.y + constUp.height / 2,
+                pulse,
+                0,
+                Math.PI * 2
+                );
+                game.ctx.stroke();
+            }
+        }
+
 
         function spawnVictoryPowerUps(){
-            for(let i = 0; i < 3; i++){
-                spawnPowerUp(
-                    game.canvas.width/2 - 30 + i * 30,
-                    game.canvas.height/2
-                );
-            }
-            spawnEpicUp(
+            spawnConstUp(
                 game.canvas.width/2,
-                game.canvas.height/2
+                game.canvas.height/2 + 40
             );
         }
 
@@ -1300,6 +1407,7 @@ window.onload = setupStartScreen;
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
+            document.getElementById('damage').textContent = game.player.damage;
             document.getElementById('Highscore').textContent = savedHighscore;
 
             // Visuelle Lebensanzeige
@@ -1348,6 +1456,7 @@ window.onload = setupStartScreen;
             game.enemyBullets = [];
             game.powerUps = [];
             game.epicUps = [];
+            game.constUps = [];
             game.player.powerUp = null;
             game.player.powerUpTimer = 0;
             game.player.epicUp = null;
