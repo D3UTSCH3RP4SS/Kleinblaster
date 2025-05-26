@@ -2,8 +2,8 @@
         const PLAYER_SPEED = 2.5;
         let ENEMY_ROWS = 2;
         let ENEMY_COLS = 5;
-        const POWERUP_CHANCE = 0; // 0.1 = 10% chance when enemy dies
-        const EPICPOWER_CHANCE = 1; // like that one ^
+        let POWERUP_CHANCE = 1; // like that one under this
+        let EPICPOWER_CHANCE = 1; // this does Nothing
 
         //Boss-Leben
         const BOSS_HEALTH_MULTIPLIER = 50;
@@ -179,7 +179,15 @@ window.onload = setupStartScreen;
                 name: "Live",
                 image: "Powerups/Item_Powerup_Heart_2.png",
                 duration: 50,
-                effect: () => { game.lives++ && updateUI()}
+                effect: () => {game.lives++ && updateUI()}
+            },
+            LUCKUP: {
+                //für Pulsiereffektfarbe:
+                color: "#90EE90",
+                name: "LuckUp",
+                image: "Powerups/Gal_Player_Clover.png",
+                duration: 500,
+                effect: (player) => {player.luckActive = true; }
             }
                 
 
@@ -218,7 +226,6 @@ window.onload = setupStartScreen;
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
             }
         };
-
 
         //Lade die Bilder für die Powerups
         async function loadPowerupImages(){
@@ -628,9 +635,19 @@ window.onload = setupStartScreen;
                 game.player.damage = 1;
             }
 
+            if(game.player.luckActive){
+                EPICPOWER_CHANCE = 1;
+                POWERUP_CHANCE = 0;
+            }else{
+                EPICPOWER_CHANCE = 0.01;//here 
+                POWERUP_CHANCE = 0.25;//You can change the Power and Epicup Chance
+            }
+
             if (game.player.isShooting) {
                 shoot();
             }
+
+           
 
         }
 
@@ -1026,6 +1043,8 @@ window.onload = setupStartScreen;
             }
             if(game.player.powerUp?.name === "Canon"){
                 game.player.canonActive = false;
+            }if(game.player.powerUp?.name === "LuckUp"){
+                game.player.luckActive = false;
             }
             game.player.powerUp = null;
             
@@ -1327,6 +1346,7 @@ window.onload = setupStartScreen;
             game.player.hasShield = false;
             game.player.laserActive = false;
             game.player.canonActive = false;
+            game.player.luckActive = false;
             game.player.rapidfire = false;
             game.player.damage = 1;
             game.boss = false; 
