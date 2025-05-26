@@ -852,7 +852,7 @@ window.onload = setupStartScreen;
                                 y: game.boss.y + game.boss.height,
                                 width: 45,
                                 height: 75,
-                                speed: 1,
+                                speed: 2,
                                 angle: angle,
                                 isHoming: true
                             });
