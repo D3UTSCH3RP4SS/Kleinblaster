@@ -277,7 +277,7 @@ window.onload = setupStartScreen;
             game.heartFullImage = new Image();
             game.heartFullImage.src = 'Powerups/Item_Powerup_Heart_2.png';
             game.heartHalfImage = new Image();
-            game.heartHalfImage.src = 'Powerups/Item_Powerup_HalfHeart_2.png';
+            game.heartHalfImage.src = 'Powerups/Item_Powerup_Heart_2.png';
             game.heartEmptyImage = new Image();
             game.heartEmptyImage.src = 'Powerups/Item_Powerup_DarkHeart_2.png';
             
