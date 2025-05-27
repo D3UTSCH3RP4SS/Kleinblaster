@@ -88,7 +88,7 @@ window.onload = setupStartScreen;
             score: 0,
             highscore: 0,
             lives: 3,
-            level: 14,
+            level: 1,
             gameOver: false,
             player: {
                 x: 0,
@@ -180,7 +180,7 @@ window.onload = setupStartScreen;
                 name: "Live",
                 image: "Powerups/Item_Powerup_Heart_2.png",
                 duration: 50,
-                effect: () => {game.lives++ && updateUI()}
+                effect: () => {game.lives++, updateUI()}
             },
             LUCKUP: {
                 //für Pulsiereffektfarbe:
@@ -234,7 +234,7 @@ window.onload = setupStartScreen;
                 color: "red",
                 name: "DamageBoost",
                 image: "Powerups/Placeholder.jpg",
-                effect: () => {bossDamage()}
+                effect: () => {bossDamage(), updateUI()}
             }
         };
 
@@ -619,7 +619,7 @@ window.onload = setupStartScreen;
         }
 
         // Update Player
-        let CanonDamage = game.player.damage + 5;
+        let CanonDamage = game.player.damage;
 
         function bossDamage(){ 
             CanonDamage += 10;
@@ -652,9 +652,10 @@ window.onload = setupStartScreen;
             // Update Player damage
 
             if (game.player.canonActive) {
-                game.player.damage = CanonDamage;
+                game.player.damage = CanonDamage + 5;
                 updateUI();
             }else{
+                game.player.damage = CanonDamage;
                 updateUI();
             }
 
@@ -1032,7 +1033,6 @@ window.onload = setupStartScreen;
                 if(checkCollision(game.constUps[i], game.player)){
                     activateConstUp(game.constUps[i].constType);
                     game.constUps.splice(i, 1);
-                    updateUI();
                 }
             }
         }
@@ -1468,6 +1468,7 @@ window.onload = setupStartScreen;
             game.player.rapidfire = false;
             game.player.damage = 1;
             game.boss = false; 
+            CanonDamage = 1;
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
             startLevel();
