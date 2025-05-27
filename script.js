@@ -135,7 +135,7 @@ window.onload = setupStartScreen;
                 //eventuell können wir verschiedene Attackmuster einbauen
                 attackPattern: "wave",
                 projectileSpeed: 1,
-                health: 20,
+                health: 200,
                 image: "Pictures/playerShot.png"
             }
         };
@@ -224,7 +224,7 @@ window.onload = setupStartScreen;
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
                 duration: 300,
-                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true; ConstDamage += 1, updateUI()}
+                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true; ConstDamage += 0.1, updateUI()}
             }
         };
 
@@ -1407,7 +1407,7 @@ window.onload = setupStartScreen;
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
-            document.getElementById('damage').textContent = game.player.damage;
+            document.getElementById('damage').textContent = Math.floor(game.player.damage);
             document.getElementById('Highscore').textContent = savedHighscore;
 
             // Visuelle Lebensanzeige
