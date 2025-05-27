@@ -7,9 +7,30 @@
 </head>
 <body>
     <div id="startScreen">
-        <h1>Smallblaster</h1>
+        <h1>Smallblaster</h1> <r></r>
         <button id="startBtn">START GAME</button>
     </div>
+
+    <div id="creditScreen" style="display: none;">
+        <div class="creditContent">
+            <h1>Credits</h1> <r></r>
+            <table>
+                <tr>
+                    <td>David Essig</td>
+                </tr>
+                <tr>
+                    <td>Levin Wienecke</td>
+                </tr>
+                <tr>
+                    <td>Maximilian Gläser</td>
+                </tr>
+            </table>
+            <h2>Special Thanks to</h2> <r></r>
+            <p>Lukas Uebel</p>
+        </div>
+        <button id="creditsRestartBtn">NEU STARTEN</button>
+    </div>
+
     <!--Sounds-->
     <audio id="playerShootSound" preload="auto"></audio>
     <audio id="playerHitSound" src="Sounds/PlayerHitSound.mp3" preload="auto"></audio>
@@ -30,6 +51,12 @@
             <div>Score: <span id="score">0</span></div>
             <div>Highscore: <span id="Highscore">0</span></div>
             <div hidden>Lives: <span id="lives">3</span></div>
+        </div>
+
+        <div id="OverScreen" class="overlay" style="display: none;">
+            <h1>GAME OVER!</h1>
+            <button id="restartBtn">NEU STARTEN</button>
+            <button id="creditsButton">Credits</button>
         </div>
 
         <!--Pause Screen-->
@@ -57,7 +84,6 @@
             </div>
         </div>
 
-        <button id="restartBtn">NEU STARTEN</button>
         <div class="life-container" id="lifeContainer"></div>
         <canvas id="gameCanvas" width="480" height="640"></canvas>
         
