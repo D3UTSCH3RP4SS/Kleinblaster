@@ -125,7 +125,7 @@ window.onload = setupStartScreen;
             pauseTime: 0
         };
 
-        
+
 
         //Boss Typen
         const BOSS_TYPES = {
@@ -272,6 +272,15 @@ window.onload = setupStartScreen;
 
             game.canvas = document.getElementById('gameCanvas');
             game.ctx = game.canvas.getContext('2d');
+
+            // Lebensleisten Bilder laden
+            game.heartFullImage = new Image();
+            game.heartFullImage.src = 'Powerups/Item_Powerup_Heart_2.png';
+            game.heartHalfImage = new Image();
+            game.heartHalfImage.src = 'Powerups/Item_Powerup_HalfHeart_2.png';
+            game.heartEmptyImage = new Image();
+            game.heartEmptyImage.src = 'Powerups/Item_Powerup_DarkHeart_2.png';
+            
             
             // Set player initial position
             game.player.x = game.canvas.width / 2 - game.player.width / 2;
@@ -1244,9 +1253,47 @@ window.onload = setupStartScreen;
                 
                 // Draw health bar for enemies with health > 1
                 if (enemy.health > 0) {
-                     const healthWidth =  enemy.width * (enemy.health / (1 + Math.floor(game.level/3)));
-                    game.ctx.fillStyle = "#00FF00";
-                    game.ctx.fillRect(enemy.x, enemy.y - 10, healthWidth, 3);
+                    const maxHealth = 1 + Math.floor(game.level/3);
+                    const heartSize = 10;
+                    
+                    // Dynamische Berechnung der Herz-Anzeige
+                    const healthPerHeart = Math.pow(1, Math.floor(Math.log2(maxHealth/4)));
+                    const heartCount = Math.ceil(maxHealth / healthPerHeart);
+                    const visibleHearts = Math.min(heartCount, 4); // Maximal 4 Herzen
+                    
+                    const startX = enemy.x + (enemy.width - (heartSize * visibleHearts)) / 2;
+                    
+                    for(let i = 0; i < visibleHearts; i++) {
+                        const currentThreshold = (i + 1) * healthPerHeart;
+                        const isFull = enemy.health >= currentThreshold;
+                        const isPartial = enemy.health > (i * healthPerHeart) && enemy.health < currentThreshold;
+                        
+                        // Bildauswahl
+                        const img = isFull ? game.heartFullImage : 
+                                    isPartial ? game.heartHalfImage : 
+                                    game.heartEmptyImage;
+                        
+                        if(img.complete) {
+                            game.ctx.drawImage(
+                                img,
+                                startX + (i * heartSize),
+                                enemy.y - 15,
+                                heartSize,
+                                heartSize
+                            );
+                        } else {
+                            // Fallback farbige Darstellung
+                            game.ctx.fillStyle = isFull ? "#FF0000" : 
+                                            isPartial ? "#FF8888" : 
+                                            "#444444";
+                            game.ctx.fillRect(
+                                startX + (i * heartSize),
+                                enemy.y - 15,
+                                heartSize,
+                                heartSize
+                            );
+                        }
+                    }
                 }
             }
         }
