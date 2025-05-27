@@ -125,6 +125,8 @@ window.onload = setupStartScreen;
             pauseTime: 0
         };
 
+        
+
         //Boss Typen
         const BOSS_TYPES = {
             ALIEN_MONSTER: {
