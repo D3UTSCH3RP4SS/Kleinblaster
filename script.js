@@ -224,7 +224,7 @@ window.onload = setupStartScreen;
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
                 duration: 300,
-                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true;}
+                effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true; ConstDamage += 1, updateUI()}
             }
         };
 
@@ -619,10 +619,10 @@ window.onload = setupStartScreen;
         }
 
         // Update Player
-        let CanonDamage = game.player.damage;
+        let ConstDamage = game.player.damage;
 
         function bossDamage(){ 
-            CanonDamage += 10;
+            ConstDamage += 10;
         }
 
         function updatePlayer() {
@@ -652,10 +652,10 @@ window.onload = setupStartScreen;
             // Update Player damage
 
             if (game.player.canonActive) {
-                game.player.damage = CanonDamage + 5;
+                game.player.damage = ConstDamage + 5;
                 updateUI();
             }else{
-                game.player.damage = CanonDamage;
+                game.player.damage = ConstDamage;
                 updateUI();
             }
 
@@ -1468,7 +1468,7 @@ window.onload = setupStartScreen;
             game.player.rapidfire = false;
             game.player.damage = 1;
             game.boss = false; 
-            CanonDamage = 1;
+            ConstDamage = 1;
             document.getElementById('restartBtn').style.display = 'none';
             updateUI();
             startLevel();

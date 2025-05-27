@@ -193,12 +193,15 @@ canvas {
 td{
 
     font-weight: bold;
-    border: lightblue solid 1px;
+    border: rgb(157, 163, 165) solid 1px;
+    color: darkblue;
     border-radius: 5px;
-    background-color: #0088ff;
+    background-color: #ccd4db;
     margin: 5px;
     padding: 5px;
 
 }
+
+
 
 
