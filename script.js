@@ -135,11 +135,14 @@ window.onload = setupStartScreen;
                 width: 100,
                 height: 120,
                 color: "FFFFFF",
+                images: {
+                    phase1: "Pictures/PlayerShot-1.png",
+                    phase2: "Pictures/PlayerShot-1.png"
+                },
                 //eventuell können wir verschiedene Attackmuster einbauen
                 attackPattern: "wave",
                 projectileSpeed: 1,
-                health: 200,
-                image: "Pictures/playerShot-1.png"
+                health: 20
             }
         };
 
@@ -339,18 +342,25 @@ window.onload = setupStartScreen;
             //Laden von Boss
             game.bossImages = {};
             for(const [key, boss] of Object.entries(BOSS_TYPES)){
-                const img = new Image();
-                img.src = boss.image;
-                game.bossImages[key] = img;
-            }
+                game.bossImages[key] = {
+                    phase1: new Image(),
+                    phase2: new Image()
+                };
+                game.bossImages[key].phase1.src = boss.images.phase1;
+                game.bossImages[key].phase2.src = boss.images.phase2;
+            };
 
             //Laden der Kugeln vom Spieler (um sie mir irgendwann zu geben x.x(war nur Spaß))
             game.bulletImage = new Image();
             game.bulletImage.src = 'Pictures/playerShot.png';
 
             //Laden der Kugeln vom Gegner (um sie auf mich zu ballern yipieeeeeeeeeeeeee (Coden macht so viel Spaß)
-            game.enemyBulletImage = new Image();
-            game.enemyBulletImage.src = 'Pictures/Enemyshot.png';
+            game.enemyBulletImages = {
+                normal: new Image(),
+                homing: new Image()
+            };
+            game.enemyBulletImages.normal.src = 'Pictures/EnemyShot.png';
+            game.enemyBulletImages.homing.src = 'Pictures/Enemy.png';
             
         }
 
@@ -701,6 +711,11 @@ window.onload = setupStartScreen;
             }
         }
 
+                //Einfärbung bei Power Ups
+        /*if(game.player.powerUp){
+            game.ctx.filter = 'hue-rotate(${Math.random()*360}deg)';
+        }*/
+
         // Shoot Bullet
         function shoot() {
             const now = Date.now();
@@ -863,8 +878,8 @@ window.onload = setupStartScreen;
                             x: game.boss.x + game.boss.width/2,
                             y: game.boss.y + game.boss.height,
                             width: 30,
-                            height: 20,
-                            speed: 7
+                            height: 50,
+                            speed: 5
                         });
                     }
                     cooldown2 = 450;
@@ -874,9 +889,6 @@ window.onload = setupStartScreen;
                 if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
                     game.boss.phase = 2;
                     game.boss.attackPattern = "homing";
-                    const dx = game.player.x + game.player.width/2 - (game.boss.x + game.boss.width/2);
-                    const dy = game.player.y + game.player.height/2 - (game.boss.y + game.boss.height);
-                    const angle = Math.atan2(dy, dx);
                 }
 
                 //2. Bossphase
@@ -917,6 +929,7 @@ window.onload = setupStartScreen;
                                 angle: angle,
                                 isHoming: true
                             });
+                        
                     }
                     cooldown2 = 300;
                 }
@@ -1018,6 +1031,8 @@ window.onload = setupStartScreen;
                 if (checkCollision(game.enemyBullets[i], game.player)) {
                     if (!game.player.hasShield) {
                         playPlayerHitSound();
+                        game.ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+                        game.ctx.fillRect(0, 0, game.canvas.width, game.canvas.height);
                         game.lives--;
                         updateUI();
                         
@@ -1217,11 +1232,19 @@ window.onload = setupStartScreen;
                     game.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                 }
             }
-    
+
+            
             for (const bullet of game.enemyBullets) {
-                if (game.enemyBulletImage && game.enemyBulletImage.complete) {
+                let img;
+                if(bullet.isHoming) {
+                    img = game.enemyBulletImages.homing;
+                } else {
+                    img = game.enemyBulletImages.normal;
+                }
+
+                if (img && img.complete) {
                     game.ctx.drawImage(
-                        game.enemyBulletImage,
+                        img,
                         bullet.x,
                         bullet.y,
                         bullet.width,
@@ -1307,10 +1330,17 @@ window.onload = setupStartScreen;
 
         
         function drawBoss(){
-            const img = game.bossImages.ALIEN_MONSTER;
+
+            let img;
 
             //Boss bild erstellen
-            if(img.complete){
+            if(game.boss.phase === 1) {
+                img = game.bossImages.ALIEN_MONSTER.phase1;
+            } else {
+                img = game.bossImages.ALIEN_MONSTER.phase2;
+            }
+
+            if(img.complete) {
                 game.ctx.drawImage(
                     img,
                     game.boss.x,
@@ -1318,11 +1348,10 @@ window.onload = setupStartScreen;
                     game.boss.width,
                     game.boss.height
                 );
-            }else{
+            } else {
                 game.ctx.fillStyle = game.boss.color;
                 game.ctx.fillRect(game.boss.x, game.boss.y, game.boss.width, game.boss.height);
             }
-
             //Gesundheitsbalken zeichnen
             const healthWidth = game.boss.width * (game.boss.health / game.boss.maxHealth);
             game.ctx.fillStyle = "red";
@@ -1445,9 +1474,6 @@ window.onload = setupStartScreen;
         
 
         function Highscore(){
-
-            
-
             if(game.highscore < game.score){
             game.highscore = game.score;
             }
@@ -1465,6 +1491,7 @@ window.onload = setupStartScreen;
             document.getElementById('level').textContent = game.level;
             document.getElementById('damage').textContent = Math.floor(game.player.damage * 10)/10;
             document.getElementById('Highscore').textContent = savedHighscore;
+            document.getElementById('powerup').textContent = game.player.powerUp?.name;
 
             // Visuelle Lebensanzeige
             const lifeContainer = document.getElementById('lifeContainer');
@@ -1493,7 +1520,6 @@ window.onload = setupStartScreen;
         function gameOver() {
             bgMusic.pause();
             bossTrack.pause();
-            game.enemies = [];
             game.gameOver = true;
             playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
@@ -1550,8 +1576,5 @@ window.onload = setupStartScreen;
 
         
 
-        //Einfärbung bei Power Ups
-        /*if(game.player.powerUp){
-            game.ctx.filter = 'hue-rotate(${Math.random()*360}deg)';
-        }*/
+
         
