@@ -79,6 +79,7 @@ canvas {
     position: static; 
     display: none;
     z-index: 20;
+    margin-top: 20px;
 }
 
 #creditsRestartBtn { 
