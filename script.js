@@ -35,7 +35,8 @@
             {name:"FNaF 1", path:"Backgroundmusic/FNaF 1.mp3"},
             {name:"FNaF 2", path:"Backgroundmusic/FNaF 2.mp3"},
             {name:"Order 8bit", path:"Backgroundmusic/8-bitChiptuneRemix.mp3"},
-            {name:"Secret", path:"Backgroundmusic/Secret.mp3"}
+            {name:"Secret", path:"Backgroundmusic/Secret.mp3"},
+            {name:"Castle Vein", path:"Backgroundmusic/Castle Vein.mp3"}
         ];
 
         // Start Screen Setup
@@ -88,7 +89,7 @@ window.onload = setupStartScreen;
             score: 0,
             highscore: 0,
             lives: 3,
-            level: 1,
+            level: 14,
             gameOver: false,
             player: {
                 x: 0,
@@ -138,7 +139,7 @@ window.onload = setupStartScreen;
                 attackPattern: "wave",
                 projectileSpeed: 1,
                 health: 200,
-                image: "Pictures/playerShot.png"
+                image: "Pictures/playerShot-1.png"
             }
         };
 
@@ -347,10 +348,10 @@ window.onload = setupStartScreen;
             game.bulletImage = new Image();
             game.bulletImage.src = 'Pictures/playerShot.png';
 
-            //Laden der Kugeln vom Gegner (um sie auf mich zu ballern yipieeeeeeeeeeeeee (Coden macht so viel Spaß))
+            //Laden der Kugeln vom Gegner (um sie auf mich zu ballern yipieeeeeeeeeeeeee (Coden macht so viel Spaß)
             game.enemyBulletImage = new Image();
-            game.enemyBulletImage.src = 'Pictures/Enemy.png';
-
+            game.enemyBulletImage.src = 'Pictures/Enemyshot.png';
+            
         }
 
         
@@ -639,7 +640,7 @@ window.onload = setupStartScreen;
         let ConstDamage = game.player.damage;
 
         function bossDamage(){ 
-            ConstDamage += 10;
+            ConstDamage += 5;
         }
 
         function updatePlayer() {
@@ -677,7 +678,7 @@ window.onload = setupStartScreen;
             }
 
             if(game.player.luckActive){
-                EPICPOWER_CHANCE = 1;
+                EPICPOWER_CHANCE = 0.6;
                 POWERUP_CHANCE = 0;
             }else{
                 EPICPOWER_CHANCE = 0.01;//here
@@ -724,8 +725,8 @@ window.onload = setupStartScreen;
                 x: x,
                 y: game.player.y,
                 spread: spread,
-                width: 8,  // An Bildgröße anpassen
-                height: 16, // An Bildgröße anpassen
+                width: 30,  // An Bildgröße anpassen
+                height: 20, // An Bildgröße anpassen
                 speed: 8,
                 color: game.player.powerUp?.color || "#FFFF00",
                 isPlayerBullet: true // Neu: Unterscheidung zwischen Spieler- und Gegner-Schüssen
@@ -797,8 +798,8 @@ window.onload = setupStartScreen;
                     game.enemyBullets.push({
                         x: enemy.x + enemy.width / 2 - 2,
                         y: enemy.y + enemy.height,
-                        width: 4,
-                        height: 15,
+                        width: 30,
+                        height: 20,
                         speed: 4,
                         color: "#FF5555"
                     });
@@ -861,8 +862,8 @@ window.onload = setupStartScreen;
                         game.enemyBullets.push({
                             x: game.boss.x + game.boss.width/2,
                             y: game.boss.y + game.boss.height,
-                            width: 15,
-                            height: 25,
+                            width: 30,
+                            height: 20,
                             speed: 7
                         });
                     }
@@ -896,7 +897,7 @@ window.onload = setupStartScreen;
                                 height: 20,
                                 speed: 2,
                                 angle: angle,
-                                isHoming: true
+                                isHoming: true,
                             });
                             game.enemyBullets.push({
                                 x: game.boss.x + game.boss.width/2,
@@ -1462,7 +1463,7 @@ window.onload = setupStartScreen;
             document.getElementById('score').textContent = game.score;
             document.getElementById('lives').textContent = game.lives;
             document.getElementById('level').textContent = game.level;
-            document.getElementById('damage').textContent = Math.floor(game.player.damage);
+            document.getElementById('damage').textContent = Math.floor(game.player.damage * 10)/10;
             document.getElementById('Highscore').textContent = savedHighscore;
 
             // Visuelle Lebensanzeige
@@ -1492,12 +1493,12 @@ window.onload = setupStartScreen;
         function gameOver() {
             bgMusic.pause();
             bossTrack.pause();
+            game.enemies = [];
             game.gameOver = true;
             playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
             document.getElementById('creditsButton').style.display = 'block';
             document.getElementById('OverScreen').style.display = 'flex';
-            
         }
 
         
