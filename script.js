@@ -291,6 +291,12 @@ window.onload = setupStartScreen;
             
             // Setup restart button
             document.getElementById('restartBtn').addEventListener('click', resetGame);
+
+            // Setup Credits button
+            document.getElementById('creditsButton').addEventListener('click', showCredits);
+
+            //Setup Credits Restart Button
+            document.getElementById('creditsRestartBtn').addEventListener('click', resetGame);
             
             // Start first level
             startLevel();
@@ -1489,6 +1495,9 @@ window.onload = setupStartScreen;
             game.gameOver = true;
             playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
+            document.getElementById('creditsButton').style.display = 'block';
+            document.getElementById('OverScreen').style.display = 'flex';
+            
         }
 
         
@@ -1519,10 +1528,23 @@ window.onload = setupStartScreen;
             game.boss = false; 
             ConstDamage = 1;
             document.getElementById('restartBtn').style.display = 'none';
+            document.getElementById('creditsButton').style.display = 'none';
+            document.getElementById('creditsRestartBtn').style.display = 'block';
+            document.getElementById('OverScreen').style.display = 'none';
+            document.getElementById("gameScreen").style.display = 'block';
+            document.getElementById("creditScreen").style.display = 'none';
             updateUI();
             startLevel();
             bgMusic.play();
             requestAnimationFrame(gameLoop);
+        }
+
+        //Show credits
+        function showCredits() {
+            document.getElementById('creditsRestartBtn').style.display = 'block';
+            document.getElementById('OverScreen').style.display = 'none';
+            document.getElementById("gameScreen").style.display = 'none';
+            document.getElementById("creditScreen").style.display = 'flex';
         }
 
         
