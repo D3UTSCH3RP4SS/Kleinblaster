@@ -41,7 +41,7 @@ body {
 #startBtn, #restartBtn, #creditsButton, #creditsRestartBtn { 
     padding: 15px 30px; 
     font-size: 20px; 
-    background: #FF3366; 
+    background: #650668; 
     color: white; 
     border: none; 
     border-radius: 5px; 
@@ -50,7 +50,7 @@ body {
 }
 
 #startBtn:hover, #restartBtn:hover, #creditsButton:hover, #creditsRestartBtn:hover { 
-    background: #FF0055;
+    background: #650668;
 }
 
 canvas { 
@@ -61,6 +61,7 @@ canvas {
     animation: bg 10000s infinite;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    cursor: none;
 }
 
 @keyframes bg {
@@ -219,7 +220,18 @@ canvas {
     background-color: #ccd4db;
     margin: 5px;
     padding: 5px;
+    font-family: "ＭＳ Ｐゴシック";
+    -webkit-font-smoothing: none;
 
+}
+
+#powerup-ht {
+    display:block;
+    transform: translate(-150%, -50%);
+    width: 100px;
+    height: 20px;
+    font-family: "ＭＳ Ｐゴシック";
+    -webkit-font-smoothing: none;
 }
 
 
@@ -243,21 +255,6 @@ canvas {
     text-shadow: 0 0 10px #00ffff, 0 0 20px #0088ff;
     margin-bottom: 50px;
     color: white;
-}
-
-#creditScreen {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(45deg, #000000, #1a0033, #000000);
-    background-size: 300% 300%;
-    animation: gradientBG 15s ease infinite;
-    color: white;
-    z-index: 10;
 }
 
 #creditContent {
@@ -292,10 +289,183 @@ canvas {
     100% { background-position: 0% 50%; }
 }
 
-#powerup-ht {
-    display:block;
-    transform: translate(-150%, -50%);
-    width: 100px;
-    height: 20px;
-}
 
+
+/* Credit Sachen */
+
+#creditScreen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            z-index: 10;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .creditContent {
+            max-width: 800px;
+            width: 80%;
+            padding: 40px;
+            background: rgba(10, 8, 32, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.5);
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(100, 150, 255, 0.3);
+        }
+
+        .creditContent h1 {
+            font-size: 48px;
+            margin-bottom: 40px;
+            color: #4df9ff;
+            text-shadow: 0 0 15px rgba(77, 249, 255, 0.7);
+            position: relative;
+        }
+
+        .creditContent h1::after {
+            content: "";
+            display: block;
+            width: 150px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #4df9ff, transparent);
+            margin: 15px auto;
+        }
+
+        .creditContent h2 {
+            font-size: 32px;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            color: #ff66cc;
+            text-shadow: 0 0 10px rgba(255, 102, 204, 0.5);
+        }
+
+        .credits-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .credit-card {
+            background: rgba(20, 25, 70, 0.5);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            transform: translateY(0);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .credit-card:hover {
+            transform: translateY(-10px);
+            background: rgba(30, 35, 90, 0.7);
+            box-shadow: 0 8px 25px rgba(0, 200, 255, 0.4);
+            border-color: rgba(100, 200, 255, 0.4);
+        }
+        
+        .credit-card h3 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #ffcc66;
+        }
+        
+        .credit-card p {
+            font-size: 16px;
+            color: #aaccff;
+            margin: 5px 0;
+        }
+        
+        .special-thanks {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 102, 204, 0.3);
+        }
+        
+        #creditsRestartBtn {
+            margin-top: 50px;
+            padding: 15px 50px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #650668, #650668);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+            position: relative;
+            z-index: 2;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        
+        #creditsRestartBtn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 20px rgba(255, 0, 85, 0.6);
+            background: linear-gradient(135deg, #650668, #650668);
+        }
+        
+        /* Hintergrund-Effekte */
+        .space-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 4s infinite ease-in-out;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        /* Responsive Anpassungen */
+        @media (max-width: 768px) {
+            .creditContent {
+                width: 90%;
+                padding: 20px;
+            }
+            
+            .creditContent h1 {
+                font-size: 36px;
+            }
+            
+            .creditContent h2 {
+                font-size: 28px;
+            }
+            
+            .credits-container {
+                grid-template-columns: 1fr;
+            }
+        }

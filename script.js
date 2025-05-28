@@ -1323,8 +1323,36 @@ window.onload = setupStartScreen;
                     game.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
                 }
                 
+                // Gesundheitsbalken für normale Gegner
+                const barWidth = enemy.width;
+                const barHeight = 4;
+                const barX = enemy.x;
+                const barY = enemy.y - 10;
+                const maxHealth = 1 + Math.floor(game.level/3);
+                const healthPercentage = enemy.health / maxHealth;
+                
+                // Hintergrund (leerer Teil)
+                game.ctx.fillStyle = "#333";
+                game.ctx.fillRect(barX, barY, barWidth, barHeight);
+                
+                // Füllung (aktuelles Leben)
+                const healthWidth = barWidth * healthPercentage;
+                if(healthPercentage > 0.5) {
+                    game.ctx.fillStyle = "#00FF00"; // Grün bei hoher Gesundheit
+                } else if(healthPercentage > 0.25) {
+                    game.ctx.fillStyle = "#FFFF00"; // Gelb bei mittlerer Gesundheit
+                } else {
+                    game.ctx.fillStyle = "#FF0000"; // Rot bei niedriger Gesundheit
+                }
+                game.ctx.fillRect(barX, barY, healthWidth, barHeight);
+                
+                // Rahmen
+                game.ctx.strokeStyle = "#FFF";
+                game.ctx.lineWidth = 1;
+                game.ctx.strokeRect(barX, barY, barWidth, barHeight);
+
                 // Draw health bar for enemies with health > 1
-                if (enemy.health > 0) {
+                /*if (enemy.health > 0) {
                     const maxHealth = 1 + Math.floor(game.level/3);
                     const heartSize = 10;
                     
@@ -1366,9 +1394,11 @@ window.onload = setupStartScreen;
                             );
                         }
                     }
-                }
+                }*/
             }
         }
+
+                
 
         
         function drawBoss(){
@@ -1636,6 +1666,7 @@ window.onload = setupStartScreen;
             game.player.rapidfire = false;
             game.player.damage = 1;
             game.boss = false; 
+            game.player.x = 240;
             ConstDamage = 1;
             document.getElementById('restartBtn').style.display = 'none';
             document.getElementById('creditsButton').style.display = 'none';
@@ -1656,6 +1687,73 @@ window.onload = setupStartScreen;
             document.getElementById("gameScreen").style.display = 'none';
             document.getElementById("creditScreen").style.display = 'flex';
         }
+
+        // Funktion zum Erstellen von Hintergrundpartikeln
+        function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            
+            // Sternenhintergrund
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(star);
+            }
+            
+            // Bewegliche Partikel
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const size = Math.random() * 4 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                
+                // Verschiedene Farben für Partikel
+                const colors = ['#ff6666', '#66ff66', '#6666ff', '#ffff66', '#ff66ff', '#66ffff'];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                container.appendChild(particle);
+                
+                // Animation
+                particle.animate([
+                    { 
+                        opacity: 0, 
+                        transform: 'translateY(0) translateX(0)' 
+                    },
+                    { 
+                        opacity: 0.7, 
+                        transform: `translateY(${Math.random() * 100 - 50}px) translateX(${Math.random() * 100 - 50}px)` 
+                    },
+                    { 
+                        opacity: 0, 
+                        transform: `translateY(${Math.random() * 200 - 100}px) translateX(${Math.random() * 200 - 100}px)` 
+                    }
+                ], {
+                    duration: 3000 + Math.random() * 5000,
+                    easing: 'cubic-bezier(0.1, 0.7, 0.8, 0.1)'
+                }).onfinish = () => particle.remove();
+            }, 300);
+        }
+        
+        // Initialisiere die Partikel wenn die Credit Scene geladen wird
+        document.addEventListener('DOMContentLoaded', createParticles);
+        
+        // Event-Listener für den Credit Button (müsste mit deinem bestehenden JS verbunden werden)
+        document.getElementById('creditsButton')?.addEventListener('click', function() {
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('creditScreen').style.display = 'flex';
+        });
+        
+        document.getElementById('creditsRestartBtn')?.addEventListener('click', function() {
+            document.getElementById('creditScreen').style.display = 'none';
+            startLevel();
+        });
 
         
 
