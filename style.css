@@ -58,20 +58,20 @@ canvas {
     margin: 20px auto; 
     background-image: url("Background/pixelated-space-background.avif"); 
     border: 2px solid #444; 
-    animation: bg 100s infinite;
+    animation: bg 10000s infinite;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
 }
 
 @keyframes bg {
     0%{display: absolute; background-position-y: 0px; background-position-x: 600px;}
-    100%{display: absolute; background-position-y: 1480px; background-position-x: 600px;}
+    100%{display: absolute; background-position-y: 1480000px ; background-position-x: 600px;}
 }
 
 
 #ui{ 
-    position: absolute;
-    top: 710px; 
+    position: fixed;
+    top: 740px;
     left: 50%;
     transform: translate(-40%, -50%);
     color: white; 
@@ -210,7 +210,7 @@ canvas {
 
 }
 
-td{
+.info{
 
     font-weight: bold;
     border: rgb(157, 163, 165) solid 1px;
@@ -293,5 +293,9 @@ td{
 }
 
 #powerup-ht {
-    transform: translate(-60%, -50%);
+    display:block;
+    transform: translate(-150%, -50%);
+    width: 100px;
+    height: 20px;
 }
+

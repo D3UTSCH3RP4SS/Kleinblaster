@@ -15,7 +15,7 @@
     <div id="creditScreen" style="display: none;">
         <div class="creditContent">
             <h1>Credits</h1> <r></r>
-            <table>
+            <table class="creditTable">
                 <tr>
                     <td>Levin Wienecke</td>
                 </tr>
@@ -27,6 +27,12 @@
                 </tr>
                 <tr>
                     <td>Yazan Said</td>
+                </tr>
+                <tr>
+                    <!--Rausmachen, wenn Boss bild ersetzt wird-->
+                    <td>This work has been released under the Creative Commons BY License: <a href="https://creativecommons.org/licenses/by/4.0/">https://creativecommons.org/licenses/by/4.0/</a> 
+
+                        By MillionthVector <a href="http://millionthvector.blogspot.de">http://millionthvector.blogspot.de</a></td>
                 </tr>
             </table>
             <h2>Special Thanks to</h2> <r></r>
@@ -43,21 +49,19 @@
     <audio id="gameOverSound" src="Sounds/base-de-vinheta-38-345596.mp3" preload="auto"></audio>
     
     <audio id="bossHitSound" src="BossSounds/Punch Sound Effect.mp3"></audio>
-    <audio id="bossDeathSound" src="BossSounds/Dead.mp3"></audio>
-    <audio id="bossAttackSound" src="BossSounds/Laugh3.mp3"></audio>
+    <audio id="bossDeathSound" src="BossSounds/BossDead.mp3"></audio>
+    <audio id="bossAttackSound" src="BossSounds/BossAttack.mp3"></audio>
     <audio id="bossTrack" src="BossTrack/FNaF Boss Theme Melt.mp3" loop></audio>
 
     <div id="gameScreen" style="display: none;">
         <div id="ui">
+            <table id="ui-table">
+            <tr><td class="info"><div>Level: <span id="level">1</span></div></td><td class="info"><div>Schaden: <span id="damage">0</span></div></td></tr>
 
-        <div id="powerup-ht">Powerup: <span id="powerup">-</span></div>
-
-            <table>
-            <tr><td><div>Level: <span id="level">1</span></div></td><td><div>Schaden: <span id="damage">0</span></div></td></tr>
-
-            <tr><td><div>Score: <span id="score">0</span></div></td><td><div>Highscore: <span id="Highscore">0</span></div></td></tr>
+            <tr><td class="info"><div>Score: <span id="score">0</span></div></td><td class="info"><div>Highscore: <span id="Highscore">0</span></div></td></tr>
             
             <div hidden>Lives: <span id="lives">3</span></div>
+            <div id="powerup-ht">Powerup: <span id="powerup">-</span></div>
             </table>
         </div>
 

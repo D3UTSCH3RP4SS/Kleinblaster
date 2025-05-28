@@ -36,7 +36,8 @@
             {name:"FNaF 2", path:"Backgroundmusic/FNaF 2.mp3"},
             {name:"Order 8bit", path:"Backgroundmusic/8-bitChiptuneRemix.mp3"},
             {name:"Secret", path:"Backgroundmusic/Secret.mp3"},
-            {name:"Castle Vein", path:"Backgroundmusic/Castle Vein.mp3"}
+            {name:"Castle Vein", path:"Backgroundmusic/Castle Vein.mp3"},
+            {name:"Town Theme", path:"Backgroundmusic/8bittownthemesong-59266.mp3"}
         ];
 
         // Start Screen Setup
@@ -89,7 +90,7 @@ window.onload = setupStartScreen;
             score: 0,
             highscore: 0,
             lives: 3,
-            level: 14,
+            level: 1,
             gameOver: false,
             player: {
                 x: 0,
@@ -99,10 +100,10 @@ window.onload = setupStartScreen;
                 speed: PLAYER_SPEED,
                 isMovingLeft: false,
                 isMovingRight: false,
-                powerUp: null,
+                powerUps: [],
                 powerUpTimer: 0,
                 laserActive: false,
-                epicUp: null,
+                epicUps: [],
                 epicUpTimer: 0,
                 damage: 1,
                 isShooting: false, //-- Macht möglich während des Bewegens gedrückt zu halten um zu schießen
@@ -136,8 +137,8 @@ window.onload = setupStartScreen;
                 height: 120,
                 color: "FFFFFF",
                 images: {
-                    phase1: "Pictures/PlayerShot-1.png",
-                    phase2: "Pictures/PlayerShot-1.png"
+                    phase1: "BossImages/BossImage.png",
+                    phase2: "BossImages/BossImage.png"
                 },
                 //eventuell können wir verschiedene Attackmuster einbauen
                 attackPattern: "wave",
@@ -185,7 +186,7 @@ window.onload = setupStartScreen;
                 color: "darkred",
                 name: "Live",
                 image: "Powerups/Item_Powerup_Heart_2.png",
-                duration: 50,
+                duration: 200,
                 effect: () => {game.lives++, updateUI()}
             },
             LUCKUP: {
@@ -194,6 +195,7 @@ window.onload = setupStartScreen;
                 name: "LuckUp",
                 image: "Powerups/Gal_Player_Clover.png",
                 duration: 500,
+                timer: 200,
                 effect: (player) => {player.luckActive = true; }
             }
                 
@@ -206,7 +208,7 @@ window.onload = setupStartScreen;
                 color: "white",
                 name: "Nuke",
                 image: "Powerups/Item_Powerup_Skull_9.png",
-                duration: 10,
+                duration: 200,
                 effect: () => { for(let i = game.enemies.length - 1; i >= 0; i--){
                                     game.enemies[i].health = Math.floor(game.enemies[i].health - (game.level / 4));
                                     if (game.enemies[i].health <= 0) {
@@ -319,6 +321,13 @@ window.onload = setupStartScreen;
 
             //Musikauswahl laden
             setupMusicSelector();
+
+            // Bilder für Boss-Gesundheitsleiste laden Bg = Hintergrund Fw = Vordergrund
+            game.bossHealthBarBg = new Image();
+            game.bossHealthBarBg.src = 'BossImages/Boss-Bar-Bg.png';
+            
+            game.bossHealthBarFg = new Image();
+            game.bossHealthBarFg.src = 'BossImages/Boss-Bar-Fg.png';
 
 
             //Bild laden für Spieler
@@ -662,19 +671,33 @@ window.onload = setupStartScreen;
                 game.player.x += game.player.speed;
             }
             
-            // Update power-up timer
-            if (game.player.powerUp) {
-                game.player.powerUpTimer--;
-                if (game.player.powerUpTimer <= 0) {
-                    resetPowerUp();
+            // Powerups verarbeiten
+           for (let i = game.player.powerUps.length - 1; i >= 0; i--) {
+                game.player.powerUps[i].timer--;
+                if (game.player.powerUps[i].timer <= 0) {
+                    const type = game.player.powerUps[i].type;
+                    game.player.powerUps.splice(i, 1);
+                    
+                    // Prüfe ob noch andere PowerUps des gleichen Typs aktiv sind
+                    const sameTypeActive = game.player.powerUps.some(p => p.type.name === type.name);
+                    if (!sameTypeActive) {
+                        resetPowerUpEffect(type);
+                    }
                 }
             }
-
-            // Update epic-up timer
-            if (game.player.epicUp) {
-                game.player.epicUpTimer--;
-                if (game.player.epicUpTimer <= 0) {
-                    resetEpicUp();
+            
+            // EpicUps verarbeiten
+            for (let i = game.player.epicUps.length - 1; i >= 0; i--) {
+                game.player.epicUps[i].timer--;
+                if (game.player.epicUps[i].timer <= 0) {
+                    const type = game.player.epicUps[i].type;
+                    game.player.epicUps.splice(i, 1);
+                    
+                    // Prüfe ob noch andere EpicUps des gleichen Typs aktiv sind
+                    const sameTypeActive = game.player.epicUps.some(e => e.type.name === type.name);
+                    if (!sameTypeActive) {
+                        resetEpicUpEffect(type);
+                    }
                 }
             }
             // Update Player damage
@@ -688,11 +711,11 @@ window.onload = setupStartScreen;
             }
 
             if(game.player.luckActive){
-                EPICPOWER_CHANCE = 0.6;
-                POWERUP_CHANCE = 0;
+                EPICPOWER_CHANCE = 0.2;
+                POWERUP_CHANCE = 0.01;
             }else{
                 EPICPOWER_CHANCE = 0.01;//here
-                POWERUP_CHANCE = 0.25;//You can change the Power and Epicup Chance
+                POWERUP_CHANCE = 0.1;//You can change the Power and Epicup Chance
             }
 
             if (game.player.isShooting) {
@@ -737,13 +760,13 @@ window.onload = setupStartScreen;
 
         function createBullet(x,spread) {
             return {
-                x: x,
+                x: game.player.x + 5,
                 y: game.player.y,
                 spread: spread,
                 width: 30,  // An Bildgröße anpassen
                 height: 20, // An Bildgröße anpassen
                 speed: 8,
-                color: game.player.powerUp?.color || "#FFFF00",
+                color: game.player.powerUps?.color || "#FFFF00",
                 isPlayerBullet: true // Neu: Unterscheidung zwischen Spieler- und Gegner-Schüssen
             };
         }
@@ -882,7 +905,7 @@ window.onload = setupStartScreen;
                             speed: 5
                         });
                     }
-                    cooldown2 = 450;
+                    cooldown2 = Math.floor(Math.random()*400)+ 300;
                 }
 
                 //Phasenwechsel bei 50% Leben
@@ -931,7 +954,7 @@ window.onload = setupStartScreen;
                             });
                         
                     }
-                    cooldown2 = 300;
+                    cooldown2 = Math.floor(Math.random()*300)+ 300;;
                 }
                 
 
@@ -1037,6 +1060,7 @@ window.onload = setupStartScreen;
                         updateUI();
                         
                         if (game.lives <= 0) {
+                            playGameOverSound();
                             gameOver();
                             return;
                         }
@@ -1123,24 +1147,20 @@ window.onload = setupStartScreen;
         }
 
         function activatePowerUp(type) {
-            // Reset current power-up if exists
-            if (game.player.powerUp) {
-                resetPowerUp();
-            }
-            
-            game.player.powerUp = type;
-            game.player.powerUpTimer = type.duration;
+            //Push das nächste Powerup
+            game.player.powerUps.push({
+                type: type,
+                timer: type.duration
+            });
             type.effect(game.player);
         }
 
         function activateEpicUp(epictype) {
-            // Reset current epic-up if exists
-            if (game.player.epicUp) {
-                resetEpicUp();
-            }
-            
-            game.player.epicUp = epictype;
-            game.player.epicUpTimer = epictype.duration;
+            //Push das nächste Epicup
+            game.player.epicUps.push({
+                type: epictype,
+                timer: epictype.duration
+            });
             epictype.effect(game.player);
         }
 
@@ -1148,44 +1168,66 @@ window.onload = setupStartScreen;
             constType.effect(game.player);
         }
 
-        function resetPowerUp() {
-            
-            game.player.powerUpTimer = 0;
-            if(game.player.powerUp?.name === "Rapid Fire"){
-                game.player.fireRate = null;
-                game.player.rapidfire = false;
+        function resetPowerUpEffect(type) {
+            switch (type.name) {
+                case "Rapid Fire": 
+                    if (!game.player.powerUps.some(p => p.type.name === "Rapid Fire")) {
+                        game.player.rapidfire = false;
+                    }
+                    break;
+                case "Shield": 
+                    if (!game.player.powerUps.some(p => p.type.name === "Shield")) {
+                        game.player.hasShield = false;
+                    }
+                    break;
+                case "Laser": 
+                    if (!game.player.powerUps.some(p => p.type.name === "Laser")) {
+                        game.player.laserActive = false;
+                    }
+                    break;
+                case "Canon": 
+                    if (!game.player.powerUps.some(p => p.type.name === "Canon")) {
+                        game.player.canonActive = false;
+                    }
+                    break;
+                case "LuckUp": 
+                    if (!game.player.powerUps.some(p => p.type.name === "LuckUp")) {
+                        game.player.luckActive = false;
+                    }
+                    break;
             }
-            if(game.player.powerUp?.name === "Shield"){
-                game.player.hasShield = false;
-            }
-            if(game.player.powerUp?.name === "Laser"){
-                game.player.laserActive = false;
-            }
-            if(game.player.powerUp?.name === "Canon"){
-                game.player.canonActive = false;
-            }if(game.player.powerUp?.name === "LuckUp"){
-                game.player.luckActive = false;
-            }
-            game.player.powerUp = null;
-            
         }
-        
-        function resetEpicUp() {
-            game.player.epicUpTimer = 0;
-            if(game.player.epicUp?.name === "AllTheUps") {
-                game.player.laserActive = false;
-                game.player.hasShield = false;
-                game.player.canonActive = false;
-                game.player.fireRate = null;
-                game.player.rapidfire = false;
-                game.powerUpTimer = 0;
+
+        function resetEpicUpEffect(type) {
+            if (type.name === "AllTheUps") {
+                if (!game.player.epicUps.some(e => e.type.name === "AllTheUps")) {
+                    game.player.laserActive = false;
+                    game.player.hasShield = false;
+                    game.player.canonActive = false;
+                    game.player.rapidfire = false;
+                }
             }
-            game.player.epicUp = null;
         }
 
         // Draw Functions
         function drawPlayer() {
-            
+            const shieldCount = game.player.powerUps.filter(p => p.type.name === "Shield").length;
+                if (shieldCount > 0) {
+                    for (let i = 0; i < shieldCount; i++) {
+                    const size = game.player.width * (0.8 + i * 0.1);
+                    game.ctx.strokeStyle = `rgba(51, 102, 255, ${1 - i * 0.3})`;
+                    game.ctx.lineWidth = 2 + i;
+                    game.ctx.beginPath();
+                    game.ctx.arc(
+                        game.player.x + game.player.width / 2,
+                        game.player.y + game.player.height / 2,
+                        size,
+                        0,
+                        Math.PI * 2
+                    );
+                    game.ctx.stroke();
+                    }
+                }
             
             // Draw shield if active
             if (game.player.hasShield) {
@@ -1352,10 +1394,49 @@ window.onload = setupStartScreen;
                 game.ctx.fillStyle = game.boss.color;
                 game.ctx.fillRect(game.boss.x, game.boss.y, game.boss.width, game.boss.height);
             }
-            //Gesundheitsbalken zeichnen
-            const healthWidth = game.boss.width * (game.boss.health / game.boss.maxHealth);
-            game.ctx.fillStyle = "red";
-            game.ctx.fillRect(game.boss.x, game.boss.y - 20, healthWidth, 10);
+            
+            // Gesundheitsbalken mit Bildern zeichnen
+            const barWidth = game.boss.width;
+            const barHeight = 12;
+            const barX = game.boss.x;
+            const barY = game.boss.y - 22;
+            const borderRadius = 3;
+            
+            // Rahmen zeichnen
+            game.ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+            game.ctx.fillRect(barX - 2, barY - 2, barWidth + 4, barHeight + 4);
+            
+            // Hintergrund
+            game.ctx.fillStyle = "#444";
+            game.ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            // Gesundheitsfüllung mit Bild
+            const healthWidth = barWidth * (game.boss.health / game.boss.maxHealth);
+            if (game.bossHealthBarFg.complete) {
+                game.ctx.save();
+                game.ctx.beginPath();
+                game.ctx.roundRect(barX, barY, healthWidth, barHeight, borderRadius);
+                game.ctx.clip();
+                
+                game.ctx.drawImage(
+                game.bossHealthBarFg,
+                barX, barY,
+                healthWidth, barHeight
+                );
+                
+                game.ctx.restore();
+            } else {
+                game.ctx.fillStyle = "linear-gradient(to right, #FF0000, #990000)";
+                game.ctx.fillRect(barX, barY, healthWidth, barHeight);
+            }
+            
+            // Pulsierende Animation bei niedriger Gesundheit
+            if (game.boss.health / game.boss.maxHealth < 0.3) {
+                const pulse = Math.sin(game.frames * 0.2) * 0.5 + 0.5;
+                game.ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * pulse})`;
+                game.ctx.fillRect(barX, barY, healthWidth, barHeight);
+            }
+
         }
 
 
@@ -1491,7 +1572,10 @@ window.onload = setupStartScreen;
             document.getElementById('level').textContent = game.level;
             document.getElementById('damage').textContent = Math.floor(game.player.damage * 10)/10;
             document.getElementById('Highscore').textContent = savedHighscore;
-            document.getElementById('powerup').textContent = game.player.powerUp?.name;
+
+            const powerupNames = game.player.powerUps.map(p => p.type.name);
+            const epicupNames = game.player.epicUps.map(e => e.type.name);
+            document.getElementById('powerup').textContent = [...powerupNames, ...epicupNames].join(', ') || 'Keins';
 
             // Visuelle Lebensanzeige
             const lifeContainer = document.getElementById('lifeContainer');
@@ -1521,7 +1605,6 @@ window.onload = setupStartScreen;
             bgMusic.pause();
             bossTrack.pause();
             game.gameOver = true;
-            playGameOverSound();
             document.getElementById('restartBtn').style.display = 'block';
             document.getElementById('creditsButton').style.display = 'block';
             document.getElementById('OverScreen').style.display = 'flex';
