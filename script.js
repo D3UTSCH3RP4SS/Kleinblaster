@@ -214,7 +214,7 @@
                 image: "Powerups/Gal_Player_Clover.png",
                 duration: 500,
                 timer: 200,
-                sound: "PowerupSounds/stab.mp3",
+                sound: "PowerupSounds/coin.mp3",
                 effect: (player) => {player.luckActive = true; }
             }
                 
