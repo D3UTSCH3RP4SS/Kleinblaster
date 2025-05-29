@@ -292,7 +292,7 @@ canvas {
 #creditScreen {
             position: flex;
             width: 100%;
-            height: 140%;
+            height: 160%;
             display: none;
             flex-direction: column;
             justify-content: center;

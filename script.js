@@ -166,8 +166,9 @@
                 //für Pulsiereffektfarbe:
                 color: "red",
                 name: "Rapid Fire", 
-                image: "Powerups/Item_Powerup_2.png", 
+                image: "Powerups/Item_Powerup_2.png",
                 duration: 300,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => { player.rapidfire = true; }
             },
             SHIELD: { 
@@ -176,6 +177,7 @@
                 name: "Shield", 
                 image: "Powerups/Item_Powerup_Shield_12.png",
                 duration: 450,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => { player.hasShield = true; }
             },
             LASER: { 
@@ -184,6 +186,7 @@
                 name: "Laser", 
                 image: "Powerups/Gal_Player_Shot.png",
                 duration: 300,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => { player.laserActive = true; }
             },
             CANON: {
@@ -192,6 +195,7 @@
                 name: "Canon",
                 image: "Powerups/Gal_Player_DMG.png",
                 duration: 500,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => { player.canonActive = true; }
             },
             EXTRALIVE: {
@@ -200,6 +204,7 @@
                 name: "Live",
                 image: "Powerups/Item_Powerup_Heart_2.png",
                 duration: 200,
+                sound: "PowerupSounds/stab.mp3",
                 effect: () => {game.lives++, updateUI()}
             },
             LUCKUP: {
@@ -209,6 +214,7 @@
                 image: "Powerups/Gal_Player_Clover.png",
                 duration: 500,
                 timer: 200,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => {player.luckActive = true; }
             }
                 
@@ -222,6 +228,7 @@
                 name: "Nuke",
                 image: "Powerups/Item_Powerup_Skull_9.png",
                 duration: 200,
+                sound: "PowerupSounds/stab.mp3",
                 effect: () => { for(let i = game.enemies.length - 1; i >= 0; i--){
                                     game.enemies[i].health = Math.floor(game.enemies[i].health - (game.level / 4));
                                     if (game.enemies[i].health <= 0) {
@@ -245,6 +252,7 @@
                 name: "AllTheUps",
                 image: "Powerups/Item_Powerup_Shield_8.png",
                 duration: 300,
+                sound: "PowerupSounds/stab.mp3",
                 effect: (player) => { player.canonActive = true; player.laserActive = true; player.hasShield = true; player.rapidfire = true; ConstDamage += 0.1, updateUI()}
             }
         };
@@ -255,6 +263,7 @@
                 color: "red",
                 name: "DamageBoost",
                 image: "Powerups/Placeholder.jpg",
+                sound: "PowerupSounds/stab.mp3",
                 effect: () => {bossDamage(), updateUI()}
             }
         };
@@ -409,6 +418,12 @@
         let cooldownInterval = null;
         const SPRINT_DURATION = 5000; // 2000 = 2 Sekunden Sprintdauer
         const COOLDOWN_DURATION = 1000; //5000 = 5 Sekunden Cooldown
+
+        function playPowerUpSound(soundPath){
+            const audio = new Audio(soundPath);
+            audio.volume = PLAYER_HIT_VOLUME;
+            audio.play().catch(e => console.log("Fehler beim Powerupsound laden", e));
+        }
 
         function updateSprintStatus() {
             const statusElement = document.getElementById('sprintCooldown');
@@ -834,7 +849,7 @@
             }
         }
 
-                //Einfärbung bei Power Ups
+        //Einfärbung bei Power Ups
         /*if(game.player.powerUp){
             game.ctx.filter = 'hue-rotate(${Math.random()*360}deg)';
         }*/
@@ -1173,6 +1188,7 @@
             for (let i = game.powerUps.length - 1; i >= 0; i--) {
                 if (checkCollision(game.powerUps[i], game.player)) {
                     activatePowerUp(game.powerUps[i].type);
+                    playPowerUpSound(game.powerUps[i].type.sound);
                     game.powerUps.splice(i, 1);
                 }
             }
@@ -1181,14 +1197,16 @@
             for (let i = game.epicUps.length - 1; i >= 0; i--) {
                 if (checkCollision(game.epicUps[i], game.player)) {
                     activateEpicUp(game.epicUps[i].epictype);
+                    playPowerUpSound(game.epicUps[i].epictype.sound);
                     game.epicUps.splice(i, 1);
                 }
             }
 
-            // Const ups vs player
+            // Const ups vs players
             for (let i = game.constUps.length - 1; i >= 0; i--){
                 if(checkCollision(game.constUps[i], game.player)){
                     activateConstUp(game.constUps[i].constType);
+                    playPowerUpSound(game.constUps[i].constType.sound);
                     game.constUps.splice(i, 1);
                 }
             }
@@ -1247,6 +1265,7 @@
         }
 
         function activatePowerUp(type) {
+            //playPowerUpSound(type.sound);
             //Push das nächste Powerup
             game.player.powerUps.push({
                 type: type,
@@ -1256,6 +1275,7 @@
         }
 
         function activateEpicUp(epictype) {
+            //playPowerUpSound(type.epictype);
             //Push das nächste Epicup
             game.player.epicUps.push({
                 type: epictype,
@@ -1265,6 +1285,7 @@
         }
 
         function activateConstUp(constType){
+            //playPowerUpSound(constType.sound);
             constType.effect(game.player);
         }
 
@@ -1767,6 +1788,8 @@
             game.player.damage = 1;
             game.boss = false; 
             game.player.x = 240;
+            powerupNames = [];
+            epicupNames = [];
             ConstDamage = 1;
             document.getElementById('restartBtn').style.display = 'none';
             document.getElementById('creditsButton').style.display = 'none';
