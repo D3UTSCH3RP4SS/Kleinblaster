@@ -611,7 +611,7 @@
         // SOUND-FUNKTIONEN
         function playEnemyHitSound() {
             enemyHitSound.currentTime = 0;
-            enemyHitSound.volume = ENEMY_HIT_VOLUME;
+            enemyHitSound.volume = ENEMY_HIT_VOLUME * 0.0001;
             enemyHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
         }
 
