@@ -41,13 +41,26 @@
         ];
 
         // Start Screen Setup
+        // Setup Start Screen
         function setupStartScreen() {
             document.getElementById('startBtn').addEventListener('click', () => {
                 document.getElementById('startScreen').style.display = 'none';
                 document.getElementById('gameScreen').style.display = 'block';
                 init();
             });
+
+            // Neuer Event-Listener für den Tutorial-Button
+            document.getElementById('tutorialBtn').addEventListener('click', () => {
+                document.getElementById('startScreen').style.display = 'none';
+                document.getElementById('tutorialScreen').style.display = 'flex';
+            });
         }
+
+        // Event-Listener für den Zurück-Button in der Anleitung
+        document.getElementById('tutorialBackBtn').addEventListener('click', () => {
+            document.getElementById('tutorialScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+        });
 
         function setupMusicSelector() {
             const select = document.getElementById('musicSelect');

@@ -8,8 +8,80 @@
 <body>
     <div id="startScreen">
         <h1>Kleinblaster</h1>
-
         <button id="startBtn">START GAME</button>
+        <button id="tutorialBtn">Tutorial</button>
+    </div>
+
+    <div id="tutorialScreen" class="overlay" style="display: none;">
+        <div class="tutorialContent">
+            <h1>Spielanleitung</h1>
+            
+            <div class="tutorial-section">
+                <h2>Steuerung</h2>
+                <ul>
+                    <li>← → / A D: Spieler bewegen</li>
+                    <li>Leertaste / ↑ / W: Schießen</li>
+                    <li>Shift: Sprinten (mit Cooldown)</li>
+                    <li>ESC / P: Pause</li>
+                </ul>
+            </div>
+            
+            <div class="tutorial-section">
+                <h2>Power-Ups</h2>
+                <div class="powerup-grid">
+                    <div class="powerup-item">
+                        <img src="Powerups/Item_Powerup_2.png" alt="Rapid Fire">
+                        <p><strong>Rapid Fire:</strong> Schnelleres Schießen</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Item_Powerup_Shield_12.png" alt="Shield">
+                        <p><strong>Shield:</strong> Schutzschild gegen 1 Treffer</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Gal_Player_Shot.png" alt="Laser">
+                        <p><strong>Laser:</strong> Drei Schüsse gleichzeitig</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Gal_Player_DMG.png" alt="Canon">
+                        <p><strong>Canon:</strong> +5 Schaden</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Item_Powerup_Heart_2.png" alt="Extra Life">
+                        <p><strong>Extra Life:</strong> +1 Leben</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Gal_Player_Clover.png" alt="Luck Up">
+                        <p><strong>Luck Up:</strong> Bessere Power-Up Chancen</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-section">
+                <h2>Epic Power-Ups</h2>
+                <div class="powerup-grid">
+                    <div class="powerup-item">
+                        <img src="Powerups/Item_Powerup_Skull_9.png" alt="Nuke">
+                        <p><strong>Nuke:</strong> Fügt allen Gegnern Schaden zu</p>
+                    </div>
+                    <div class="powerup-item">
+                        <img src="Powerups/Item_Powerup_Shield_8.png" alt="AllTheUps">
+                        <p><strong>AllTheUps:</strong> Aktiviert alle Power-Ups</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-section">
+                <h2>Spielmechaniken</h2>
+                <ul>
+                    <li>Jede 15. Stufe kommt ein Boss</li>
+                    <li>Besiege Bosse für permanente Upgrades</li>
+                    <li>Maximal 5 Leben</li>
+                    <li>Gegner werden mit jedem Level stärker</li>
+                </ul>
+            </div>
+            
+            <button id="tutorialBackBtn">Zurück</button>
+        </div>
     </div>
 
     <div id="creditScreen" class="overlay" style="display: none;">
