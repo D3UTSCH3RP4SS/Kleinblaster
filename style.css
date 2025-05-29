@@ -67,7 +67,7 @@ canvas {
 
 #ui{ 
     position: fixed;
-    top: 740px;
+    top: 730px;
     left: 50%;
     transform: translate(-40%, -50%);
     color: white; 

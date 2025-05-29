@@ -80,8 +80,8 @@
         }
 
 
-// Modify the window.onload to use the start screen
-window.onload = setupStartScreen;
+        // Modify the window.onload to use the start screen
+        window.onload = setupStartScreen;
 
         // Game State
         const game = {
@@ -388,25 +388,110 @@ window.onload = setupStartScreen;
             gainNode.connect(game.audioContext.destination);
             source.start(0);
         }
+            
+        // Für die Sprintfunktion
+        let sprintActive = false;
+        let cooldownActive = false;
+        let sprintTimeout = null;
+        let cooldownInterval = null;
+        const SPRINT_DURATION = 5000; // 2000 = 2 Sekunden Sprintdauer
+        const COOLDOWN_DURATION = 1000; //5000 = 5 Sekunden Cooldown
+
+        function updateSprintStatus() {
+            const statusElement = document.getElementById('sprintCooldown');
+            
+            if (sprintActive) {
+                statusElement.textContent = "Sprint aktiv!";
+                statusElement.style.color = "#FFC107"; // Gelb
+            } 
+            else if (cooldownActive) {
+                const remaining = Math.ceil((cooldownEndTime - Date.now()) / 1000);
+                statusElement.textContent = `Cooldown: ${remaining}s`;
+                statusElement.style.color = "#F44336"; // Rot
+            } 
+            else {
+                statusElement.textContent = "Sprint verfügbar!";
+                statusElement.style.color = "#4CAF50"; // Grün
+            }
+        }
+
+        function startSprint() {
+            if (cooldownActive) return;
+            
+            sprintActive = true;
+            game.player.speed = 5; // Sprintgeschwindigkeit
+            updateSprintStatus();
+            
+            // Sprint nach 2 Sekunden automatisch beenden
+            sprintTimeout = setTimeout(() => {
+                endSprint();
+            }, SPRINT_DURATION);
+        }
+
+        function endSprint() {
+            sprintActive = false;
+            cooldownActive = true;
+            game.player.speed = 2.5; // Normale Geschwindigkeit
+            
+            // Cooldown-Zeit setzen
+            cooldownEndTime = Date.now() + COOLDOWN_DURATION;
+            updateSprintStatus();
+            
+            // Cooldown-Überwachung starten
+            cooldownInterval = setInterval(() => {
+                if (Date.now() >= cooldownEndTime) {
+                    clearInterval(cooldownInterval);
+                    cooldownActive = false;
+                    updateSprintStatus();
+                } else {
+                    updateSprintStatus();
+                }
+            }, 100);
+        }
+
+        function setupControls() {
+            // Initialen Status setzen
+            updateSprintStatus();
+
+            document.addEventListener('keydown', (e) => {
+                // Bewegung und Schießen
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.player.isMovingLeft = true;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.player.isMovingRight = true;
+                if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = true;
+                
+                // Sprintfunktion (nur wenn verfügbar)
+                if (e.key === 'Shift' && !sprintActive && !cooldownActive) {
+                    startSprint();
+                }
+            });   
+            
+            document.addEventListener('keyup', (e) => {
+                // Bewegung und Schießen
+                if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === "A") game.player.isMovingLeft = false;
+                if (e.key === 'ArrowRight' || e.key === 'd' || e.key === "D") game.player.isMovingRight = false;
+                if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = false;
+                
+                // Sprint vorzeitig beenden (optional)
+                if (e.key === 'Shift' && sprintActive) {
+                    clearTimeout(sprintTimeout);
+                    endSprint();
+                }
+            });
+            
+            // Reset bei Fensterwechsel
+            window.addEventListener('blur', () => {
+                if (sprintActive || cooldownActive) {
+                    clearTimeout(sprintTimeout);
+                    clearInterval(cooldownInterval);
+                    sprintActive = false;
+                    cooldownActive = false;
+                    game.player.speed = 2.5;
+                    updateSprintStatus();
+                }
+            });
+        }
 
         
-
-        // Setup Controls
-        function setupControls() {
-        document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.player.isMovingLeft = true;
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.player.isMovingRight = true;
-        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = true; //Schießen bei gedrückter Leertaste
-        if (e.key === 'Shift') game.player.speed = 4;
-        });   
-    
-        document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === "A") game.player.isMovingLeft = false;
-        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === "D") game.player.isMovingRight = false;
-        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = false; //Stoppe Schießen
-        if (e.key === 'Shift') game.player.speed = 2.5;
-        });
-        }
 
         //Pause Screen
         function togglePause(){
