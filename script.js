@@ -394,15 +394,17 @@ window.onload = setupStartScreen;
         // Setup Controls
         function setupControls() {
         document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'a') game.player.isMovingLeft = true;
-        if (e.key === 'ArrowRight' || e.key === 'd') game.player.isMovingRight = true;
-        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w") game.player.isShooting = true; //Schießen bei gedrückter Leertaste
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.player.isMovingLeft = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.player.isMovingRight = true;
+        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = true; //Schießen bei gedrückter Leertaste
+        if (e.key === 'Shift') game.player.speed = 4;
         });   
     
         document.addEventListener('keyup', (e) => {
-        if (e.key === 'ArrowLeft' || e.key === 'a') game.player.isMovingLeft = false;
-        if (e.key === 'ArrowRight' || e.key === 'd') game.player.isMovingRight = false;
-        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w") game.player.isShooting = false; //Stoppe Schießen
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === "A") game.player.isMovingLeft = false;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === "D") game.player.isMovingRight = false;
+        if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = false; //Stoppe Schießen
+        if (e.key === 'Shift') game.player.speed = 2.5;
         });
         }
 
@@ -450,9 +452,9 @@ window.onload = setupStartScreen;
             ENEMY_DEATH_VOLUME = parseFloat(e.target.value);
             GAME_OVER_VOLUME = parseFloat(e.target.value);
 
-            BOSS_HIT_VOLUME = parseFloat(e.target.value) * 0.6;
+            BOSS_HIT_VOLUME = parseFloat(e.target.value);
             BOSS_DEATH_VOLUME = parseFloat(e.target.value);
-            BOSS_ATTACK_VOLUME = parseFloat(e.target.value) * 0.7;
+            BOSS_ATTACK_VOLUME = parseFloat(e.target.value);
             
 
             playerHitSound.volume = PLAYER_HIT_VOLUME;
@@ -479,7 +481,7 @@ window.onload = setupStartScreen;
             PLAYER_HIT_VOLUME = savedSfxVol * 0.7;
             PLAYER_SHOT_VOLUME = savedSfxVol * 0.7;
             ENEMY_HIT_VOLUME = savedSfxVol * 0.1;
-            ENEMY_DEATH_VOLUME = savedSfxVol * 0.05;
+            ENEMY_DEATH_VOLUME = savedSfxVol * 0.001;
             GAME_OVER_VOLUME = savedSfxVol * 1;
 
             BOSS_HIT_VOLUME = savedSfxVol * 0.5;
@@ -492,7 +494,7 @@ window.onload = setupStartScreen;
             gameOverSound.volume = GAME_OVER_VOLUME;
 
             bgMusic.volume = savedMusicVol;
-            bossTrack.volume = savedMusicVol * 0.5;
+            bossTrack.volume = savedMusicVol;
 
             bossHitSound.volume = BOSS_HIT_VOLUME;
             bossAttackSound.volume = BOSS_ATTACK_VOLUME;
@@ -525,7 +527,7 @@ window.onload = setupStartScreen;
 
         function playEnemyDeathSound() {
             enemyDeathSound.currentTime = 0;
-            enemyDeathSound.volume = ENEMY_DEATH_VOLUME;
+            enemyDeathSound.volume = ENEMY_DEATH_VOLUME * 0.07;
             enemyDeathSound.play().catch(e => console.log("Death-Sound fehlgeschlagen:", e));
         }
 
