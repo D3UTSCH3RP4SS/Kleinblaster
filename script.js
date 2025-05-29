@@ -113,6 +113,8 @@
                 speed: PLAYER_SPEED,
                 isMovingLeft: false,
                 isMovingRight: false,
+                isMovingUp: false,
+                isMovingDown: false,
                 powerUps: [],
                 powerUpTimer: 0,
                 laserActive: false,
@@ -168,7 +170,7 @@
                 name: "Rapid Fire", 
                 image: "Powerups/Item_Powerup_2.png",
                 duration: 300,
-                sound: "PowerupSounds/stab.mp3",
+                sound: "PowerupSounds/rapidUp.mp3",
                 effect: (player) => { player.rapidfire = true; }
             },
             SHIELD: { 
@@ -177,7 +179,7 @@
                 name: "Shield", 
                 image: "Powerups/Item_Powerup_Shield_12.png",
                 duration: 450,
-                sound: "PowerupSounds/stab.mp3",
+                sound: "PowerupSounds/shield.mp3",
                 effect: (player) => { player.hasShield = true; }
             },
             LASER: { 
@@ -485,7 +487,9 @@
                 // Bewegung und Schießen
                 if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') game.player.isMovingLeft = true;
                 if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') game.player.isMovingRight = true;
-                if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = true;
+                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') game.player.isMovingUp = true;
+                if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') game.player.isMovingDown = true;
+                if (e.key === ' ') game.player.isShooting = true;
                 
                 // Sprintfunktion (nur wenn verfügbar)
                 if (e.key === 'Shift' && !sprintActive && !cooldownActive) {
@@ -497,7 +501,9 @@
                 // Bewegung und Schießen
                 if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === "A") game.player.isMovingLeft = false;
                 if (e.key === 'ArrowRight' || e.key === 'd' || e.key === "D") game.player.isMovingRight = false;
-                if (e.key === ' ' || e.key === "ArrowUp" || e.key === "w" || e.key === "W") game.player.isShooting = false;
+                if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') game.player.isMovingUp = false;
+                if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') game.player.isMovingDown = false;
+                if (e.key === ' ') game.player.isShooting = false;
                 
                 // Sprint vorzeitig beenden (optional)
                 if (e.key === 'Shift' && sprintActive) {
@@ -785,6 +791,12 @@
             if (game.player.isMovingRight && game.player.x < game.canvas.width - game.player.width) {
                 game.player.x += game.player.speed;
             }
+            if (game.player.isMovingUp && game.player.y > (game.canvas.height/1.4)) {
+                game.player.y -= game.player.speed;
+            }
+            if (game.player.isMovingDown && game.player.y < game.canvas.height - game.player.height) {
+                game.player.y += game.player.speed;
+            }
             
             // Powerups verarbeiten
            for (let i = game.player.powerUps.length - 1; i >= 0; i--) {
@@ -970,13 +982,17 @@
                     enemy.y += 20;
                     
                     // Check if enemies reached bottom
-                    if (enemy.y + enemy.height > game.canvas.height - 50) {
+                    if (enemy.y + enemy.height > game.canvas.height - 20 ) {
                         gameOver();
                         return;
                     }
+                    
                 }
             }
         }
+
+        
+        
 
         let cooldown2 = 450;
         //Updatet den Boss
@@ -1210,7 +1226,17 @@
                     game.constUps.splice(i, 1);
                 }
             }
+
+            for (let i = game.enemies.length - 1; i >= 0; i--){
+                if (checkCollision(game.enemies[i], game.player)){
+                    gameOver();
+                        }
+            }
         }
+
+            
+
+            
 
         function checkCollision(obj1, obj2) {
             return (
