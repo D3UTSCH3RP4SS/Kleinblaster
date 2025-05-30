@@ -254,7 +254,7 @@ const POWERUP_TYPES = {
     SCORE_MULTIPLIER: { 
         color: "gold",
         name: "Score x2", 
-        image: "Powerups/Magnet.png",
+        image: "Powerups/score.png",
         duration: 450,
         sound: "PowerupSounds/coin.mp3",
         effect: () => { game.scoreMultiplier = 2; }
@@ -262,7 +262,7 @@ const POWERUP_TYPES = {
     PIERCING_SHOT: { 
         color: "silver",
         name: "Piercing Shot", 
-        image: "Powerups/Magnet.png",
+        image: "Powerups/Piercing.png",
         duration: 400,
         sound: "PowerupSounds/coin.mp3",
         effect: (player) => { player.piercingShot = true; }
@@ -310,7 +310,7 @@ const EPICUP_TYPES = {
     SLOWNESS: {
         color: "gold",
         name: "Slowness",
-        image: "Powerups/Item_Powerup_Shield_8.png",
+        image: "Powerups/Time.png",
         duration: 400,
         sound: "PowerupSounds/stab.mp3",
         effect: () => {game.timeSlowFactor = 0.5;}
