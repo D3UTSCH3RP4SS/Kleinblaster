@@ -68,9 +68,9 @@ canvas {
 
 #ui{ 
     position: fixed;
-    top: 730px;
+    top: 740px;
     left: 50%;
-    transform: translate(-40%, -50%);
+    transform: translate(-100%, -50%);
     color: white; 
     font-family: Arial; 
 }
@@ -120,11 +120,6 @@ canvas {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-}
-
-.sound-control {
-    margin: 15px 0;
-    color: white;
 }
 
 #resumeBtn {
@@ -181,17 +176,72 @@ canvas {
 
 }
 
-#musicVolume, #sfxVolume{
-
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100px;
-    height: 20px;
-    border: 1px solid white;
-    border-radius: 20px;
-    background: darkgrey;
-    cursor: pointer;
+.sound-control {
+    position: relative;
+    width: 120px;
+    height: 30px; 
+    display: flex;
+    align-items: center;
+    color: white;
 }
+
+#musicVolume, #sfxVolume{
+    -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #000000, #a200ff);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+  overflow: visible;
+  cursor: pointer;
+}
+
+#musicVolume::-webkit-slider-thumb,
+#sfxVolume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  background: url('EnemyBullets/Star.png') center/contain no-repeat, #440c3f;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transform: translateY(calc(-50% + 4px)); 
+  transition: all 0.2s ease;
+  cursor: grab;
+  margin-top: 15px;
+}
+
+#musicVolume::-moz-range-thumb,
+#sfxVolume::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  background: url('EnemyBullets/Star.png') center/contain no-repeat, #2e0c66;
+  border-radius: 50%;
+  border: 2px solid #000000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+  cursor: grab;
+  position: relative;
+  z-index: 2;
+  margin-top: 15px;
+}
+
+#musicVolume::-webkit-slider-thumb:hover,
+#sfxVolume::-webkit-slider-thumb:hover {
+  transform: translateY(calc(-50% + 4px)) scale(1.15);
+}
+
+#musicVolume:active::-webkit-slider-thumb,
+#sfxVolume:active::-webkit-slider-thumb {
+  transform: translateY(calc(-50% + 4px)) scale(1.2);
+}
+
 
 #pauseScreen select{
     padding: 5px;
@@ -220,18 +270,6 @@ canvas {
     -webkit-font-smoothing: none;
 
 }
-
-#powerup-ht {
-    display:block;
-    transform: translate(-150%, -50%);
-    width: 100px;
-    height: 20px;
-    font-family: "ＭＳ Ｐゴシック";
-    -webkit-font-smoothing: none;
-}
-
-
-
 
 #OverScreen{
     position: center;
@@ -540,4 +578,56 @@ canvas {
 
         #tutorialBackBtn:hover {
             background: #8a0d8e;
+        }
+
+        /*Power-ups*/
+        #powerup-container {
+            position: absolute;
+            left: 50%;
+            margin-top: 40px;
+            transform: translateX(-5%, -50%);
+            display: flex;
+            gap: 10px;
+            width: auto;
+            height: auto;
+            font-family: "ＭＳ Ｐゴシック";
+            -webkit-font-smoothing: none;
+            z-index: 100;
+        }
+
+        .powerup-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 15px;
+            text-align: center;
+        }
+
+        .powerup-icon {
+            width: 15px !important;
+            height: 15px !important;
+            object-fit: contain;
+            display: block;
+            margin: auto;
+        }
+
+        .cooldown-bar {
+            width: 100%;
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 3px;
+        }
+
+        .cooldown-progress {
+            height: 100%;
+            transition: width 0.1s linear;
+        }
+
+        /* Keine Powerups Text */
+        .no-powerups {
+            color: #777;
+            font-style: italic;
+            font-size: 12px;
         }

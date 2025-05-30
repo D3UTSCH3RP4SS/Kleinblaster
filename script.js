@@ -148,17 +148,37 @@
         const BOSS_TYPES = {
             ALIEN_MONSTER: {
                 name: "Alien Riese",
-                width: 100,
+                width: 150,
+                height: 90,
+                color: "FFFFFF",
+                images: {
+                    phase1: "BossImages/AlienP1.png",
+                    phase2: "BossImages/AlienP2.png"
+                },
+                attackPatterns: {
+                     phase1: ["wave", "circle", "spiral"],
+                     phase2: ["homing", "burst", "laser"]
+                },
+                projectileSpeed: 1,
+                health: 300
+            },
+
+            SPACE_BOSS: {
+                name: "Deathstrider",
+                width: 80,
                 height: 120,
                 color: "FFFFFF",
                 images: {
-                    phase1: "BossImages/BossImage.png",
-                    phase2: "BossImages/BossImage.png"
+                    phase1: "BossImages/SpaceBossP1.png",
+                    phase2: "BossImages/SpaceBossP2.png"
                 },
-                //eventuell können wir verschiedene Attackmuster einbauen
-                attackPattern: "wave",
+                attackPatterns: {
+                    phase1: ["circle", "spiral", "wave"],
+                    phase2: ["laser", "homing", "burst"]
+                },
                 projectileSpeed: 1,
-                health: 20
+                health: 200
+
             }
         };
 
@@ -390,11 +410,18 @@
             //Laden der Kugeln vom Gegner (um sie auf mich zu ballern yipieeeeeeeeeeeeee (Coden macht so viel Spaß)
             game.enemyBulletImages = {
                 normal: new Image(),
-                homing: new Image()
+                homing: new Image(),
+                circle: new Image(),
+                spiral: new Image(),
+                burst: new Image(),
+                laser: new Image()
             };
-            game.enemyBulletImages.normal.src = 'Pictures/EnemyShot.png';
-            game.enemyBulletImages.homing.src = 'Pictures/Enemy.png';
-            
+            game.enemyBulletImages.normal.src = 'EnemyBullets/EnemyShot.png';
+            game.enemyBulletImages.homing.src = 'EnemyBullets/Star.png';
+            game.enemyBulletImages.circle.src = 'EnemyBullets/Star.png';
+            game.enemyBulletImages.spiral.src = 'EnemyBullets/Star.png';
+            game.enemyBulletImages.burst.src = 'EnemyBullets/Star.png';
+            game.enemyBulletImages.laser.src = 'EnemyBullets/Star.png';
         }
 
         
@@ -423,7 +450,7 @@
 
         function playPowerUpSound(soundPath){
             const audio = new Audio(soundPath);
-            audio.volume = PLAYER_HIT_VOLUME;
+            audio.volume = PLAYER_HIT_VOLUME * 0.1;
             audio.play().catch(e => console.log("Fehler beim Powerupsound laden", e));
         }
 
@@ -597,15 +624,15 @@
             document.getElementById('musicVolume').value = savedMusicVol;
             document.getElementById('sfxVolume').value = savedSfxVol;
 
-            PLAYER_HIT_VOLUME = savedSfxVol * 0.7;
-            PLAYER_SHOT_VOLUME = savedSfxVol * 0.7;
-            ENEMY_HIT_VOLUME = savedSfxVol * 0.1;
-            ENEMY_DEATH_VOLUME = savedSfxVol * 0.001;
-            GAME_OVER_VOLUME = savedSfxVol * 1;
+            PLAYER_HIT_VOLUME = savedSfxVol;
+            PLAYER_SHOT_VOLUME = savedSfxVol;
+            ENEMY_HIT_VOLUME = savedSfxVol;
+            ENEMY_DEATH_VOLUME = savedSfxVol;
+            GAME_OVER_VOLUME = savedSfxVol;
 
-            BOSS_HIT_VOLUME = savedSfxVol * 0.5;
-            BOSS_ATTACK_VOLUME = savedSfxVol * 0.5;
-            BOSS_DEATH_VOLUME = savedSfxVol * 1;
+            BOSS_HIT_VOLUME = savedSfxVol;
+            BOSS_ATTACK_VOLUME = savedSfxVol;
+            BOSS_DEATH_VOLUME = savedSfxVol;
             
             playerHitSound.volume = PLAYER_HIT_VOLUME;
             enemyHitSound.volume = ENEMY_HIT_VOLUME;
@@ -632,7 +659,7 @@
         // SOUND-FUNKTIONEN
         function playEnemyHitSound() {
             enemyHitSound.currentTime = 0;
-            enemyHitSound.volume = ENEMY_HIT_VOLUME * 0.0001;
+            enemyHitSound.volume = ENEMY_HIT_VOLUME * 0.0004;
             enemyHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
         }
 
@@ -702,18 +729,22 @@
         }
 
         function spawnBoss(){
-            const bossType = BOSS_TYPES.ALIEN_MONSTER;
+            const bossTypes = Object.entries(BOSS_TYPES);
+            const [typeKey, type] = bossTypes[Math.floor(Math.random() * bossTypes.length)];
             game.boss = {
-                ...bossType,
-                x: game.canvas.width/2 - bossType.width/2,
+                ...type,
+                typeKey,
+                x: game.canvas.width/2 - type.width/2,
                 y: 100,
                 // Erhöht das Leben späterer Bosse
-                health: bossType.health * Math.floor(game.level/15),
-                maxHealth: bossType.health * Math.floor(game.level/15),
+                health: type.health * Math.floor(game.level/15),
+                maxHealth: type.health * Math.floor(game.level/15),
                 attackCooldown: 100,
-                secondCooldown: 100,
                 phase: 1,
-                direction: 1
+                direction: 1,
+                currentAttackPattern: type.attackPatterns.phase1[
+                    Math.floor(Math.random() * type.attackPatterns.phase1.length)
+                ]
             };
 
         }
@@ -842,7 +873,7 @@
                 POWERUP_CHANCE = 0.01;
             }else{
                 EPICPOWER_CHANCE = 0.01;//here
-                POWERUP_CHANCE = 0.1;//You can change the Power and Epicup Chance
+                POWERUP_CHANCE = 0.2//You can change the Power and Epicup Chance
             }
 
             if (game.player.isShooting) {
@@ -915,9 +946,7 @@
             for (let i = game.enemyBullets.length - 1; i >= 0; i--) {
                 const bullet = game.enemyBullets[i];
 
-                if(bullet.isHoming){
-
-                    
+                if (bullet.isHoming) {
                     const dx = game.player.x + game.player.width/2 - bullet.x;
                     const dy = game.player.y + game.player.height/2 - bullet.y;
                     if(game.canvas.height/1.7 > bullet.y){
@@ -926,8 +955,14 @@
                     
                     bullet.x += Math.cos(bullet.angle) * bullet.speed;
                     bullet.y += Math.sin(bullet.angle) * bullet.speed;
-
-                }else{
+                } 
+                // Bewegung mit Winkel
+                else if (bullet.angle !== undefined) {
+                    bullet.x += Math.cos(bullet.angle) * bullet.speed;
+                    bullet.y += Math.sin(bullet.angle) * bullet.speed;
+                } 
+                // Standardbewegung nach unten
+                else {
                     bullet.y += bullet.speed;
                 }
                 
@@ -991,6 +1026,139 @@
             }
         }
 
+        function waveAttack() {
+            for (let i = 0; i < 7; i++) {
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 30,
+                    height: 50,
+                    speed: 5,
+                    imageType: 'normal'
+                });
+            }
+        }
+
+        // Homing-Angriff
+        function homingAttack() {
+            const playerX = game.player.x + game.player.width / 2;
+            const playerY = game.player.y + game.player.height / 2;
+
+            for (let i = 0; i < 5; i++) {
+                const dx = playerX - (game.boss.x + game.boss.width / 2);
+                const dy = playerY - (game.boss.y + game.boss.height);
+                const angle = Math.atan2(dy, dx);
+
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height - 20,
+                    width: 30,
+                    height: 30,
+                    speed: 2,
+                    angle: angle,
+                    isHoming: true,
+                    imageType: 'homing'
+                });
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height - 10,
+                    width: 40,
+                    height: 40,
+                    speed: 2.1,
+                    angle: angle,
+                    isHoming: true,
+                    imageType: 'homing'
+                });
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 50,
+                    height: 50,
+                    speed: 2.2,
+                    angle: angle,
+                    isHoming: true,
+                    imageType: 'homing'
+                });
+            }
+        }
+
+        // Neues Angriffsmuster
+        function circleAttack() {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 20,
+                    height: 20,
+                    speed: 3,
+                    angle: angle,
+                    imageType: 'circle'
+                });
+            }
+        }
+
+        function spiralAttack() {
+            if (!game.boss.spiralAngle) game.boss.spiralAngle = 0;
+            
+            for (let i = 0; i < 8; i++) {
+                const angle = game.boss.spiralAngle + (i / 8) * Math.PI * 2;
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 20,
+                    height: 20,
+                    speed: 3,
+                    angle: angle,
+                    imageType: 'spiral'
+                });
+            }
+            game.boss.spiralAngle += 0.5;
+        }
+
+        function burstAttack() {
+            const angles = [2, 1.7, 1.5, 1.3, 1];
+            for (const angle of angles) {
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 20,
+                    height: 20,
+                    speed: 4,
+                    angle: angle,
+                    imageType: 'burst'
+                });
+            }
+        }
+
+        function laserAttack() {
+            // Platzhalter für Laser-Angriff
+            for (let i = 0; i < 3; i++) {
+                game.enemyBullets.push({
+                    x: game.boss.x + game.boss.width / 2,
+                    y: game.boss.y + game.boss.height,
+                    width: 10,
+                    height: 40,
+                    speed: 6,
+                    color: "#FF0000",
+                    imageType: 'laser'
+                });
+            }
+        }
+
+        // Cooldown je nach Angriffsmuster
+        function getCooldownForPattern(pattern) {
+            const cooldowns = {
+                wave: Math.floor(Math.random()*100)+200,
+                homing: Math.floor(Math.random()*100)+400,
+                circle: Math.floor(Math.random()*100)+350,
+                spiral: Math.floor(Math.random()*100)+250,
+                burst: Math.floor(Math.random()*100)+300,
+                laser: Math.floor(Math.random()*100)+10
+            };
+            return cooldowns[pattern] || 300;
+        }
+
         
         
 
@@ -1017,78 +1185,40 @@
                 }
             }
 
-            //Angriffslogik
-            if(game.boss.attackCooldown <= 0){
-                bossAttackSound.currentTime = 0;
-                bossAttackSound.play().catch(e => console.log("Error beim Laden vom Attack Sound"));
-            
-                //lege den Cooldown für den Boss fest
-                game.boss.attackCooldown = cooldown2;
-            
-                if(game.boss.attackPattern === "wave" && game.boss.phase === 1){
-                    //Spezielles Angriffsmuster
-                    for(let i = 0; i < 7; i++){
-                        game.enemyBullets.push({
-                            x: game.boss.x + game.boss.width/2,
-                            y: game.boss.y + game.boss.height,
-                            width: 30,
-                            height: 50,
-                            speed: 5
-                        });
-                    }
-                    cooldown2 = Math.floor(Math.random()*400)+ 300;
-                }
-
-                //Phasenwechsel bei 50% Leben
-                if(game.boss.health < game.boss.maxHealth/2 && game.boss.phase === 1){
+            //Phasenwechsel bei 50% Leben
+                if (game.boss.health < game.boss.maxHealth / 2 && game.boss.phase === 1) {
                     game.boss.phase = 2;
-                    game.boss.attackPattern = "homing";
+                    // Neues zufälliges Muster für Phase 2
+                    game.boss.currentAttackPattern = BOSS_TYPES[game.boss.typeKey].attackPatterns.phase2[
+                        Math.floor(Math.random() * BOSS_TYPES[game.boss.typeKey].attackPatterns.phase2.length)
+                    ];
                 }
 
-                //2. Bossphase
-                if(game.boss.attackPattern === "homing" && game.boss.phase === 2){
-                    const playerX = game.player.x + game.player.width/2;
-                    const playerY = game.player.y + game.player.height/2;
+            //Angriffslogik
+            if (game.boss.attackCooldown <= 0) {
+                bossAttackSound.play();
+                game.boss.attackCooldown = getCooldownForPattern(game.boss.currentAttackPattern);
 
-                    for(let i = 0; i < 5; i++){
-
-                        const dx = playerX - (game.boss.x + game.boss.width/2);
-                        const dy = playerY - (game.boss.y + game.boss.height);
-                        const angle = Math.atan2(dy, dx);
-
-                            game.enemyBullets.push({
-                                x: game.boss.x + game.boss.width/2,
-                                y: game.boss.y + game.boss.height - 20,
-                                width: 20,
-                                height: 20,
-                                speed: 2,
-                                angle: angle,
-                                isHoming: true,
-                            });
-                            game.enemyBullets.push({
-                                x: game.boss.x + game.boss.width/2,
-                                y: game.boss.y + game.boss.height - 10,
-                                width: 30,
-                                height: 30,
-                                speed: 2.1,
-                                angle: angle,
-                                isHoming: true
-                            });
-                            game.enemyBullets.push({
-                                x: game.boss.x + game.boss.width/2,
-                                y: game.boss.y + game.boss.height,
-                                width: 40,
-                                height: 40,
-                                speed: 2.2,
-                                angle: angle,
-                                isHoming: true
-                            });
-                        
-                    }
-                    cooldown2 = Math.floor(Math.random()*300)+ 300;;
+                switch (game.boss.currentAttackPattern) {
+                    case "wave":
+                        waveAttack();
+                        break;
+                    case "homing":
+                        homingAttack();
+                        break;
+                    case "circle":
+                        circleAttack();
+                        break;
+                    case "spiral":
+                        spiralAttack();
+                        break;
+                    case "burst":
+                        burstAttack();
+                        break;
+                    case "laser":
+                        laserAttack();
+                        break;
                 }
-                
-
             } else {
                 game.boss.attackCooldown--;
             }
@@ -1407,6 +1537,7 @@
         }
 
         function drawBullets() {
+            //Player Bullets
             for (const bullet of game.bullets) {
                 if (game.bulletImage && game.bulletImage.complete) {
                     game.ctx.drawImage(
@@ -1423,12 +1554,25 @@
             }
 
             
+            // Enemy bullets
             for (const bullet of game.enemyBullets) {
                 let img;
-                if(bullet.isHoming) {
+                
+                // Wähle Bild basierend auf dem imageType
+                if (bullet.imageType && game.enemyBulletImages[bullet.imageType]) {
+                    img = game.enemyBulletImages[bullet.imageType];
+                } else if (bullet.isHoming) {
                     img = game.enemyBulletImages.homing;
                 } else {
                     img = game.enemyBulletImages.normal;
+                }
+
+                if (bullet.imageType === 'laser') {
+                    // Laser-Streifen-Effekt
+                    game.ctx.globalAlpha = 0.7;
+                    game.ctx.fillStyle = "#FF0000";
+                    game.ctx.fillRect(bullet.x - 5, bullet.y, bullet.width + 10, bullet.height);
+                    game.ctx.globalAlpha = 1.0;
                 }
 
                 if (img && img.complete) {
@@ -1440,7 +1584,7 @@
                         bullet.height
                     );
                 } else {
-                    game.ctx.fillStyle = bullet.color;
+                    game.ctx.fillStyle = bullet.color || "#FF5555";
                     game.ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
                 }
             }
@@ -1551,12 +1695,11 @@
         function drawBoss(){
 
             let img;
-
             //Boss bild erstellen
             if(game.boss.phase === 1) {
-                img = game.bossImages.ALIEN_MONSTER.phase1;
+                img = game.bossImages[game.boss.typeKey].phase1;
             } else {
-                img = game.bossImages.ALIEN_MONSTER.phase2;
+                img = game.bossImages[game.boss.typeKey].phase2;
             }
 
             if(img.complete) {
@@ -1750,9 +1893,59 @@
             document.getElementById('damage').textContent = Math.floor(game.player.damage * 10)/10;
             document.getElementById('Highscore').textContent = savedHighscore;
 
-            const powerupNames = game.player.powerUps.map(p => p.type.name);
-            const epicupNames = game.player.epicUps.map(e => e.type.name);
-            document.getElementById('powerup').textContent = [...powerupNames, ...epicupNames].join(', ') || 'Keins';
+            // Powerup-Anzeige mit Gruppierung und kleineren Icons
+            const powerupContainer = document.getElementById('powerup-container');
+            powerupContainer.innerHTML = '';
+            
+            // Gruppiere Powerups nach Typ und behalte den längsten Timer
+            const groupedPowerups = {};
+            const allActiveUps = [...game.player.powerUps, ...game.player.epicUps];
+            
+            allActiveUps.forEach(up => {
+                const typeName = up.type.name;
+                if (!groupedPowerups[typeName] || groupedPowerups[typeName].timer < up.timer) {
+                    groupedPowerups[typeName] = up;
+                }
+            });
+            
+            // Erstelle Anzeige-Elemente für jede Powerup-Gruppe
+            Object.values(groupedPowerups).forEach(up => {
+                const powerupElement = document.createElement('div');
+                powerupElement.className = 'powerup-item';
+                
+                // Icon mit Bild
+                const icon = document.createElement('img');
+                icon.src = up.type.image;
+                icon.alt = up.type.name;
+                icon.className = 'powerup-icon';
+                powerupElement.appendChild(icon);
+                
+                // Cooldown-Balken mit Fortschrittsanzeige
+                const cooldownBar = document.createElement('div');
+                cooldownBar.className = 'cooldown-bar';
+                
+                const progress = document.createElement('div');
+                progress.className = 'cooldown-progress';
+                
+                // Berechne Fortschritt
+                const progressPercentage = (up.timer / up.type.duration) * 100;
+                progress.style.width = `${progressPercentage}%`;
+                progress.style.backgroundColor = up.type.color;
+                
+                cooldownBar.appendChild(progress);
+                powerupElement.appendChild(cooldownBar);
+                
+                // Tooltip mit Namen und verbleibender Zeit
+                const secondsLeft = Math.ceil(up.timer / 60);
+                powerupElement.title = `${up.type.name} (${secondsLeft}s)`;
+                
+                powerupContainer.appendChild(powerupElement);
+            });
+            
+            // Falls keine Powerups aktiv sind
+            if (Object.keys(groupedPowerups).length === 0) {
+                powerupContainer.innerHTML = '<div class="no-powerups">Keine aktiven Powerups</div>';
+            }
 
             // Visuelle Lebensanzeige
             const lifeContainer = document.getElementById('lifeContainer');
@@ -1802,9 +1995,7 @@
             game.powerUps = [];
             game.epicUps = [];
             game.constUps = [];
-            game.player.powerUp = null;
             game.player.powerUpTimer = 0;
-            game.player.epicUp = null;
             game.player.epicUpTimer = 0;
             game.player.hasShield = false;
             game.player.laserActive = false;

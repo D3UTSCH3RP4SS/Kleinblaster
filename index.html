@@ -127,9 +127,9 @@
                             <p>Guy</p>
                         </div>
                         <div class="credit-card">
-                            <h3>slicka ägg</h3>
-                            <p>yumurta yalamak</p>
-                            <p>لعق البيض</p>
+                            <h3>Crazy Hamburger</h3>
+                            <p>Lecker</p>
+                            <p>Schmecker</p>
                         </div>
                     </div>
                     
@@ -138,7 +138,7 @@
                         <div class="credits-container">
                             <div class="credit-card">
                                 <h3>Lukas Uebel</h3>
-                                <p>Art & Animation</p>
+                                <p>Pixel Artist</p>
                                 <p>Inspiration</p>
                             </div>
                             <!-- Platzhalter für zukünftige Credits -->
@@ -163,7 +163,7 @@
     <audio id="playerShootSound" preload="auto"></audio>
     <audio id="playerHitSound" src="Sounds/PlayerHitSound.mp3" preload="auto"></audio>
     <audio id="enemyHitSound" src="Sounds/snd_plosion.mp3" preload="auto"></audio>
-    <audio id="enemyDeathSound" src="Sounds/mus_explosion.wav" preload="auto"></audio>
+    <audio id="enemyDeathSound" src="Sounds/explosion-312361.mp3" preload="auto"></audio>
     <audio id="gameOverSound" src="Sounds/base-de-vinheta-38-345596.mp3" preload="auto"></audio>
     
     <audio id="bossHitSound" src="BossSounds/Punch Sound Effect.mp3"></audio>
@@ -189,7 +189,6 @@
             <tr><td class="info"><div>Score: <span id="score">0</span></div></td><td class="info"><div>Highscore: <span id="Highscore">0</span></div></td></tr>
             
             <div hidden>Lives: <span id="lives">3</span></div>
-            <div id="powerup-ht">Powerup: <span id="powerup">-</span></div>
             <div id="sprintStatus">Sprint-Status: <span id="sprintCooldown">Sprint verfügbar!</span></div>
             </table>
         </div>
@@ -205,21 +204,41 @@
             <div class="pause-menu">
                 <h2 id="headerPause">Paused</h2>
 
-                <div class="soundSelect">
-                    <label for="musicSelect">Soundtrack:</label>
-                    <select id="musicSelect" id="pause-menu-item"></select>
-                </div>
+                <table>
+                    <tr>
+                        <td>
+                            <div class="soundSelect sound-control">
+                                <label for="musicSelect">Soundtrack:</label>
+                                <td>
+                                    <select id="musicSelect" id="pause-menu-item"></select>
+                                </td>
+                            </div>
+                        </td>
+                    </tr>
 
-                <!--Sound Einstellungen-->
-                <div class="sound-control">
-                    <label>Musik: </label>
-                    <input type="range" id="musicVolume" min="0" max="1" step="0.01">
-                </div>
+                    <tr>
+                        <td><!--Sound Einstellungen-->
+                            <div class="sound-control">
+                                <label>Musik: </label>
+                                    <td>
+                                        <input type="range" id="musicVolume" min="0" max="1" step="0.01">
+                                    </td>
+                            </div>
+                        </td>
+                    </tr>
 
-                <div class="sound-control">
-                    <label>Soundeffekte: </label>
-                    <input type="range" id="sfxVolume" min="0" max="1" step="0.01">
-                </div>
+                    <tr>
+                        <td>
+                            <!--Sound Einstellungen-->
+                            <div class="sound-control">
+                                <label>Soundeffekte: </label>
+                                <td>
+                                    <input type="range" id="sfxVolume" min="0" max="1" step="0.01">
+                                </td>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
 
                 <button id="resumeBtn">Weiterspielen (ESC)</button>
             </div>
@@ -227,6 +246,7 @@
 
         <div class="life-container" id="lifeContainer"></div>
         <canvas id="gameCanvas" width="480" height="640"></canvas>
+        <div id="powerup-container"></div>
         
     </div>
 
