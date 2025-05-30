@@ -917,7 +917,7 @@ function updatePlayer() {
     }
 
     if(game.player.luckActive){
-        EPICPOWER_CHANCE = 0.6;
+        EPICPOWER_CHANCE = 0.4;
         POWERUP_CHANCE = 0.01;
     }else{
         EPICPOWER_CHANCE = 0.01;//here
