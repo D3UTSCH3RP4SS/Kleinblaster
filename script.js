@@ -824,6 +824,7 @@ function gameLoop() {
     checkCollisions();
     updateRows();
     caplives();
+    capShields();
     
     // Draw everything
     drawPlayer();
@@ -917,11 +918,11 @@ function updatePlayer() {
     }
 
     if(game.player.luckActive){
-        EPICPOWER_CHANCE = 0.2;
+        EPICPOWER_CHANCE = 0.1;
         POWERUP_CHANCE = 0.01;
     }else{
         EPICPOWER_CHANCE = 0.01;//here
-        POWERUP_CHANCE = 0.2//You can change the Power and Epicup Chance
+        POWERUP_CHANCE = 0.1//You can change the Power and Epicup Chance
     }
 
     if (game.player.isShooting) {
