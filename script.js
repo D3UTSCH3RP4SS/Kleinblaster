@@ -160,7 +160,7 @@ const BOSS_TYPES = {
         },
         attackPatterns: {
                 phase1: ["wave", "circle", "spiral"],
-                phase2: ["homing", "burst", "laser"]
+                phase2: ["homing", "burst", "laser", "spawn"]
         },
         projectileSpeed: 1,
         health: 300
@@ -177,7 +177,7 @@ const BOSS_TYPES = {
         },
         attackPatterns: {
             phase1: ["circle", "spiral", "wave"],
-            phase2: ["laser", "homing", "burst"]
+            phase2: ["laser", "homing", "burst", "spawn"]
         },
         projectileSpeed: 1,
         health: 200
@@ -917,7 +917,7 @@ function updatePlayer() {
     }
 
     if(game.player.luckActive){
-        EPICPOWER_CHANCE = 0.4;
+        EPICPOWER_CHANCE = 0.2;
         POWERUP_CHANCE = 0.01;
     }else{
         EPICPOWER_CHANCE = 0.01;//here
@@ -930,6 +930,14 @@ function updatePlayer() {
 
     
 
+}
+
+//capShields
+function capShields(){
+    if(game.player.shieldCount > 10){
+        game.player.shieldCount = 10;
+        updateUI();
+    }
 }
 
 //caps lives at 5
