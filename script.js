@@ -103,7 +103,7 @@ const game = {
     score: 0,
     highscore: 0,
     lives: 3,
-    level: 1,
+    level: 14,
     gameOver: false,
     player: {
         x: 0,
@@ -123,7 +123,7 @@ const game = {
         piercingShot: false,
         epicUps: [],
         epicUpTimer: 0,
-        damage: 1,
+        damage: 10,
         isShooting: false, //-- Macht möglich während des Bewegens gedrückt zu halten um zu schießen
         shootCooldown: 0
     },
@@ -142,7 +142,11 @@ const game = {
     audioContext: null,
     shotSounds: [],
     isPaused: false,
-    pauseTime: 0
+    pauseTime: 0,
+    bossIntro: false,
+    bossIntroTimer: 0,
+    bossName: "",
+    bossEntryAnimation: null
 };
 
 
@@ -769,6 +773,7 @@ function startLevel() {
         spawnBoss();
         bossTrack.play();
         bgMusic.pause();
+        game.bossIntro = true;
     }else{
         bossTrack.pause();
         bgMusic.play();
@@ -807,23 +812,74 @@ function startLevel() {
 
 function spawnBoss(){
     const bossTypes = Object.entries(BOSS_TYPES);
-    const [typeKey, type] = bossTypes[Math.floor(Math.random() * bossTypes.length)];
-    game.boss = {
-        ...type,
-        typeKey,
-        x: game.canvas.width/2 - type.width/2,
-        y: 100,
-        // Erhöht das Leben späterer Bosse
-        health: type.health * Math.floor(game.level/15),
-        maxHealth: type.health * Math.floor(game.level/15),
-        attackCooldown: 100,
-        phase: 1,
-        direction: 1,
-        currentAttackPattern: type.attackPatterns.phase1[
-            Math.floor(Math.random() * type.attackPatterns.phase1.length)
-        ]
-    };
+  const [typeKey, type] = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+  
+  game.boss = {
+    ...type,
+    typeKey,
+    x: game.canvas.width / 2 - type.width / 2,
+    y: -150, // Starte außerhalb des Bildschirms
+    health: type.health * Math.floor(game.level / 15),
+    maxHealth: type.health * Math.floor(game.level / 15),
+    attackCooldown: 100,
+    phase: 1,
+    direction: 1,
+    currentAttackPattern: type.attackPatterns.phase1[
+      Math.floor(Math.random() * type.attackPatterns.phase1.length)
+    ]
+  };
 
+  // Starte den Boss-Intro
+  game.bossIntro = true;
+  game.bossIntroTimer = 240; // 120 = 2 Sekunden bei 60 FPS
+  game.bossName = type.name;
+  
+  // Startposition für die Animation
+  const startY = -150;
+  const targetY = 100;
+  
+  // Erstelle die Animationskurve
+  game.bossEntryAnimation = {
+    startY: startY,
+    targetY: targetY,
+    currentY: startY,
+    duration: 240, // 120 = 2 Sekunden
+    progress: 0,
+    // Benutze eine Beschleunigungsfunktion für einen smoothen Effekt
+    ease: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+  };
+  
+  // Setze die Boss-Position
+  game.boss.y = startY;
+}
+
+// Füge diese Funktion hinzu
+function drawBossIntro() {
+  if (!game.bossIntro) return;
+
+  // Zeichne den Namensstreifen
+  const barHeight = 50;
+  const barY = 20;
+  
+  // Hintergrund mit Transparenz
+  game.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  game.ctx.fillRect(0, barY, game.canvas.width, barHeight);
+  
+  // Roter Akzent
+  game.ctx.fillStyle = '#FF0000';
+  game.ctx.fillRect(0, barY, game.canvas.width, 5);
+  game.ctx.fillRect(0, barY + barHeight - 5, game.canvas.width, 5);
+  
+  // Text "BOSS"
+  game.ctx.fillStyle = '#FF0000';
+  game.ctx.font = 'bold 24px "Press Start 2P", Arial, sans-serif';
+  game.ctx.textAlign = 'center';
+  game.ctx.fillText('BOSS', game.canvas.width/2, barY + 25);
+  
+  // Boss-Name
+  game.ctx.fillStyle = '#FFFFFF';
+  game.ctx.font = 'bold 20px "Press Start 2P", Arial, sans-serif';
+  game.ctx.fillText(game.bossName, game.canvas.width/2, barY + 55);
 }
 
 function spawnMinions() {
@@ -924,7 +980,12 @@ function gameLoop() {
     // Draw everything
     drawPlayer();
     drawBullets();
-    if(game.boss)drawBoss();
+    if (game.boss) {
+        drawBoss();
+            if (game.bossIntro) {
+                drawBossIntro();
+            }
+    }
     drawEnemies();
     drawPowerUps();
     drawEpicUps();
@@ -1359,8 +1420,31 @@ function getCooldownForPattern(pattern) {
 let cooldown2 = 450;
 //Updatet den Boss
 function updateBoss(){
-    //Boss bewegungen 
-    if(!game.boss) return;
+    if (!game.boss) return;
+
+// Boss-Intro Animation
+if (game.bossIntro) {
+    game.bossIntroTimer--;
+    
+    // Update der Einflug-Animation
+    if (game.bossEntryAnimation) {
+    game.bossEntryAnimation.progress = Math.min(
+        game.bossEntryAnimation.progress + 1 / game.bossEntryAnimation.duration, 
+        1
+    );
+    
+    const easedProgress = game.bossEntryAnimation.ease(game.bossEntryAnimation.progress);
+    game.boss.y = game.bossEntryAnimation.startY + 
+                    (game.bossEntryAnimation.targetY - game.bossEntryAnimation.startY) * easedProgress;
+    }
+    
+    // Ende des Intros
+    if (game.bossIntroTimer <= 0) {
+    game.bossIntro = false;
+    game.bossEntryAnimation = null;
+    }
+    return; // Keine weiteren Updates während des Intros
+}
     if(game.boss){
         // Bewegungsgeschwindigkeit
         const BOSS_SPEED = 2;
@@ -1490,9 +1574,9 @@ function updateConstUps(){
 // Check Collisions
 function checkCollisions() {
     // Spieler Kugeln gegen Boss
-    if(game.boss){
-        for(let i = game.bullets.length - 1; i>=0; i--){
-            if(checkCollision(game.bullets[i], game.boss)){
+    if (game.boss && !game.bossIntro) { // Nur Kollisionen prüfen, wenn Intro beendet
+        for (let i = game.bullets.length - 1; i >= 0; i--) {
+            if (checkCollision(game.bullets[i], game.boss)) {
                 game.boss.health -= game.player.damage;
                 //Sound für Bosshit
                 bossHitSound.currentTime = 0;
@@ -2026,6 +2110,12 @@ function drawEnemies() {
 
 
 function drawBoss(){
+    if (!game.boss) return;
+
+    if (game.bossIntro) {
+    const pulse = Math.sin(game.frames * 0.2) * 0.2 + 0.8;
+    game.ctx.globalAlpha = pulse;
+  }
 
     let img;
     //Boss bild erstellen
@@ -2089,6 +2179,10 @@ function drawBoss(){
         game.ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * pulse})`;
         game.ctx.fillRect(barX, barY, healthWidth, barHeight);
     }
+
+    if (game.bossIntro) {
+    game.ctx.globalAlpha = 1.0;
+  }
 
 }
 
