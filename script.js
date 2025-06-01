@@ -2483,7 +2483,11 @@ function saveHighscore() {
   const newHighscore = {
     name: playerName,
     score: game.score,
-    date: new Date().toLocaleDateString()
+    date: new Date().toLocaleDateString('de-DE', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+        })
   };
 
   const highscores = JSON.parse(localStorage.getItem('highscores') || '[]');
