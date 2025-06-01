@@ -119,6 +119,7 @@ const game = {
         powerUpTimer: 0,
         shieldCount:  0,
         laserActive: false,
+        ATUlaserActive: false,
         isMagnetic: false,
         piercingShot: false,
         epicUps: [],
@@ -308,7 +309,7 @@ const EPICUP_TYPES = {
         image: "Powerups/Item_Powerup_Shield_8.png",
         duration: 300,
         sound: "PowerupSounds/stab.mp3",
-        effect: (player) => { player.canonActive = true; player.laserActive = true; player.shieldCount++; player.rapidfire = true; ConstDamage += 0.1, updateUI()}
+        effect: (player) => { player.ATUcanonActive = true; player.ATUlaserActive = true; player.shieldCount++; player.ATUrapidfire = true; ConstDamage += 0.1, updateUI()}
     },
 
     SLOWNESS: {
@@ -436,8 +437,16 @@ async function init() {
     //Bild laden für Gegner
     game.enemyImages = [
         'Pictures/Enemy.png',
-        'Pictures/Enemy.png',
-        'Pictures/Enemy.png',
+        'Pictures/Enemy1.png', //oberste Reihe
+        'Pictures/Enemy2.png',
+        'Pictures/Enemy3.png',
+        'Pictures/Enemy4.png',
+        'Pictures/Enemy5.png',
+        'Pictures/Enemy6.png',
+        'Pictures/Enemy7.png',
+        'Pictures/Enemy8.png',
+        'Pictures/Enemy9.png',
+        'Pictures/Enemy10.png',
     ].map(src =>{
         const img = new Image();
         img.src = src;
@@ -1071,14 +1080,20 @@ function updatePlayer() {
     }else{
         game.player.damage = ConstDamage;
     }
+    if (game.player.ATUcanonActive) {
+        game.player.damage = ConstDamage + 5;
+    }else{
+        game.player.damage = ConstDamage;
+    }
+
     updateUI();
 
     if(game.player.luckActive){
         EPICPOWER_CHANCE = 0.1;
         POWERUP_CHANCE = 0.01;
     }else{
-        EPICPOWER_CHANCE = 0.01;//here
-        POWERUP_CHANCE = 0.1//You can change the Power and Epicup Chance
+        EPICPOWER_CHANCE = 0.5;//here
+        POWERUP_CHANCE = 0.5//You can change the Power and Epicup Chance
     }
 
     if (game.player.isShooting) {
@@ -1091,8 +1106,8 @@ function updatePlayer() {
 
 //capShields
 function capShields(){
-    if(game.player.shieldCount > 10){
-        game.player.shieldCount = 10;
+    if(game.player.shieldCount > 3){
+        game.player.shieldCount = 3;
         updateUI();
     }
 }
@@ -1113,7 +1128,8 @@ function caplives() {
 // Shoot Bullet
 function shoot() {
     const now = Date.now();
-    const fireRate = game.player?.rapidfire? 100 : 300;
+    const fireRate = (game.player.rapidfire || game.player.ATUrapidfire)? 100 : 300;
+    
 
     if (now - game.lastShotTime > fireRate) {
         //sound
@@ -1122,7 +1138,12 @@ function shoot() {
             game.bullets.push(createBullet(game.player.x + 5, 0.8));
             game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, 0));
             game.bullets.push(createBullet(game.player.x + game.player.width - 9, -0.8));
-        } else {
+        } else if(game.player.ATUlaserActive === true){
+            game.bullets.push(createBullet(game.player.x + 5, 0.8));
+            game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, 0));
+            game.bullets.push(createBullet(game.player.x + game.player.width - 9, -0.8));
+        }
+        else {
             game.bullets.push(createBullet(game.player.x + game.player.width / 2 - 2, 0));
         }
         game.lastShotTime = now;
@@ -1204,7 +1225,7 @@ function updateEnemies() {
         }
         
         // Schusslogik
-        if (enemy.shootCooldown <= 0 && Math.random() < 0.001) {
+        if (enemy.shootCooldown <= 0 && Math.random() < 0.003) {
             game.enemyBullets.push({
                 x: enemy.x + enemy.width / 2 - 2,
                 y: enemy.y + enemy.height,
@@ -1259,7 +1280,7 @@ function updateMinions() {
         }
         
         // Schießen
-        if (enemy.shootCooldown <= 0 && Math.random() < 0.00001) {
+        if (enemy.shootCooldown <= 0 && Math.random() < 0.002) {
             game.enemyBullets.push({
                 x: enemy.x + enemy.width / 2 - 2,
                 y: enemy.y + enemy.height,
@@ -1798,6 +1819,18 @@ function resetPowerUpEffect(type) {
             if (!game.player.powerUps.some(p => p.type.name === "Canon")) {
                 game.player.canonActive = false;
             }
+            case "Canon": 
+            if (!game.player.powerUps.some(p => p.type.name === "Canon")) {
+                game.player.ATUcanonActive = false;
+            }
+            case "Laser": 
+            if (!game.player.powerUps.some(p => p.type.name === "Laser")) {
+                game.player.ATUlaserActive = false;
+            }
+            case "Rapid Fire": 
+            if (!game.player.powerUps.some(p => p.type.name === "Rapid Fire")) {
+                game.player.ATUrapidfire = false;
+            }
             break;
         case "LuckUp": 
             if (!game.player.powerUps.some(p => p.type.name === "LuckUp")) {
@@ -1830,10 +1863,9 @@ function resetPowerUpEffect(type) {
 function resetEpicUpEffect(type) {
     if (type.name === "AllTheUps") {
         if (!game.player.epicUps.some(e => e.type.name === "AllTheUps")) {
-            game.player.laserActive = false;
-            game.player.hasShield = false;
-            game.player.canonActive = false;
-            game.player.rapidfire = false;
+            game.player.ATUlaserActive = false;
+            game.player.ATUcanonActive = false;
+            game.player.ATUrapidfire = false;
         }
     }
     if (type.name === "Slowness") {
@@ -1868,7 +1900,7 @@ function drawPlayer() {
     if (game.player.shieldCount > 0) {
         for (let i = 0; i < game.player.shieldCount; i++) {
             const size = game.player.width * (0.7 + i * 0.1);
-            game.ctx.strokeStyle = `rgba(51, 102, 255, ${1 - i * 0.2})`;
+            game.ctx.strokeStyle = `rgba(51, 102, 255, ${1 - i * 0.4})`;
             game.ctx.lineWidth = 2 + i;
             game.ctx.beginPath();
             game.ctx.arc(
@@ -2426,6 +2458,9 @@ function gameOver() {
     game.player.shieldCount = 0;
     game.player.laserActive = false;
     game.player.canonActive = false;
+    game.player.ATUlaserActive = false;
+    game.player.ATUcanonActive = false;
+    game.player.ATUrapidfire = false;
     game.player.luckActive = false;
     game.player.rapidfire = false;
     game.player.isMagnetic = false;
@@ -2466,8 +2501,11 @@ function resetGame() {
     game.player.shieldCount = 0;
     game.player.laserActive = false;
     game.player.canonActive = false;
-    game.player.luckActive = false;
     game.player.rapidfire = false;
+    game.player.ATUlaserActive = false;
+    game.player.ATUcanonActive = false;
+    game.player.ATUrapidfire = false;
+    game.player.luckActive = false;
     game.timeSlowFactor = 1.0;
     game.scoreMultiplier = 1;
     game.player.isMagnetic = false;
