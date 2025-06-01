@@ -195,7 +195,7 @@
     <audio id="luckUpSound" src="PowerupSounds/coin.mp3" preload="auto"></audio>
     <audio id="nukeSound" src="PowerupSounds/stab.mp3" preload="auto"></audio>
     <audio id="allTheUpsSound" src="PowerupSounds/stab.mp3" preload="auto"></audio>
-    <audio id="Slowness" src="PowerupSounds/stab.mp3" preload="auto"></audio>
+    <audio id="Slowness" src="PowerupSounds/Slownesspowerup.mp3" preload="auto"></audio>
     <audio id="damageBoostSound" src="PowerupSounds/stab.mp3" preload="auto"></audio>
 
     <div id="gameScreen" style="display: none;">
@@ -258,6 +258,7 @@
                 </table>
 
                 <button id="resumeBtn">Weiterspielen (ESC)</button>
+                <button id="showHighscoresFromPauseBtn">Bestenliste</button>
             </div>
         </div>
 
@@ -270,5 +271,35 @@
 <!--6654483500 , 49584773350-->
     
     <script src="script.js"></script>
+
+    <!-- Highscore Eingabe -->
+    <div id="highscoreInputScreen" class="overlay" style="display: none;">
+        <div class="highscore-input">
+            <h2>Neuer Highscore!</h2>
+            <p>Dein Score: <span id="finalScore"></span></p>
+            <label for="playerName">Dein Name:</label>
+            <input type="text" id="playerName" maxlength="20">
+            <button id="saveHighscoreBtn">Speichern</button>
+        </div>
+    </div>
+
+    <!-- Highscore Liste -->
+    <div id="highscoreListScreen" class="overlay" style="display: none;">
+        <div class="highscore-list">
+            <h2>Bestenliste</h2>
+            <table id="highscoreTable">
+            <thead>
+                <tr>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Score</th>
+                <th>Datum</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            </table>
+            <button id="backToMenuBtn">Zurück</button>
+        </div>
+    </div>
 </body>
 </html>

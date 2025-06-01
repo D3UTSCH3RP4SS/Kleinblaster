@@ -311,8 +311,8 @@ const EPICUP_TYPES = {
         color: "gold",
         name: "Slowness",
         image: "Powerups/Time.png",
-        duration: 400,
-        sound: "PowerupSounds/stab.mp3",
+        duration: 200,
+        sound: "PowerupSounds/Slownesspowerup.mp3",
         effect: () => {game.timeSlowFactor = 0.5;}
     }
 };
@@ -411,6 +411,19 @@ async function init() {
     game.bossHealthBarFg = new Image();
     game.bossHealthBarFg.src = 'BossImages/Boss-Bar-Fg.png';
 
+    //Highscoreliste
+    document.getElementById('saveHighscoreBtn').addEventListener('click', saveHighscore);
+    document.getElementById('backToMenuBtn').addEventListener('click', function() {
+        document.getElementById('highscoreListScreen').style.display = 'none';
+        document.getElementById('startScreen').style.display = 'none';
+        if(!gameOver)document.getElementById('OverScreen').style.display = 'none';
+        document.getElementById('pauseScreen').style.display = 'flex';
+    });
+    document.getElementById('showHighscoresFromPauseBtn')?.addEventListener('click', function() {
+        document.getElementById('pauseScreen').style.display = 'none';
+        showHighscoreList();
+    });
+
 
     //Bild laden für Spieler
     game.player.image = new Image();
@@ -426,6 +439,18 @@ async function init() {
         img.src = src;
         return img;
     });
+
+    //minions
+    game.minionImages = {
+        normal: new Image(),
+        fast: new Image(),
+        tank: new Image()
+    };
+    
+    game.minionImages.normal.src = 'Pictures/Enemy.png';
+    game.minionImages.fast.src = 'Pictures/Enemy.png';
+    game.minionImages.tank.src = 'Pictures/Enemy.png';
+    
 
     //Epic/-PowerUPs
     game.timeSlowFactor = 1.0;
@@ -616,8 +641,16 @@ function togglePause(){
     game.canvas.classList.toggle("paused", game.isPaused);
 }
 
-//Bei Escape oder P drücken in den Pause Modus wechseln
-document.addEventListener('keydown', (e) => {
+
+    document.addEventListener('keydown', (e) => {
+    // Prüfen, ob die Bestenliste angezeigt wird
+    const highscoreScreen = document.getElementById('highscoreListScreen');
+    const isHighscoreVisible = highscoreScreen && highscoreScreen.style.display !== 'none';
+    
+    // Wenn die Bestenliste sichtbar ist, keine Pausierung erlauben
+    if (isHighscoreVisible) return;
+    
+    //Bei Escape oder P drücken in den Pause Modus wechseln
     if (e.key === 'Escape' || e.key === 'p') {
         togglePause();
     }
@@ -701,7 +734,7 @@ const bossAttackSound = document.getElementById("bossAttackSound");
 // SOUND-FUNKTIONEN
 function playEnemyHitSound() {
     enemyHitSound.currentTime = 0;
-    enemyHitSound.volume = ENEMY_HIT_VOLUME * 0.0004;
+    enemyHitSound.volume = ENEMY_HIT_VOLUME * 0.1;
     enemyHitSound.play().catch(e => console.log("Hit-Sound fehlgeschlagen:", e));
 }
 
@@ -731,32 +764,34 @@ function startLevel() {
     // Clear existing enemies
     game.enemies = [];
     
-
     //Boss erstellen bei jedem 15. Level
     if(game.level % 15 === 0){
         spawnBoss();
         bossTrack.play();
         bgMusic.pause();
     }else{
-        // Create enemy formation
         bossTrack.pause();
         bgMusic.play();
+        updateRows();
+        // Create enemy formation
         const enemyWidth = 40;
         const enemyHeight = 30;
         const spacing = 50;
         const startX = (game.canvas.width - (ENEMY_COLS * spacing)) / 2;
         
-        for (let row = 0; row < ENEMY_ROWS; row++) {
-            for (let col = 0; col < ENEMY_COLS; col++) {
-                game.enemies.push({
-                    x: startX + col * spacing,
-                    y: 50 + row * spacing,
-                    width: enemyWidth,
-                    height: enemyHeight,
-                    color: getEnemyColor(row),
-                    health: Math.floor(1 + (game.level/3)), //Enemy health
-                    shootCooldown: Math.floor(Math.random() * 100)
-                });
+        if(ENEMY_ROWS > 0){
+            for (let row = 0; row < ENEMY_ROWS; row++) {
+                for (let col = 0; col < ENEMY_COLS; col++) {
+                    game.enemies.push({
+                        x: startX + col * spacing,
+                        y: 50 + row * spacing,
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        color: getEnemyColor(row),
+                        health: Math.floor(1 + (game.level/3)), //Enemy health
+                        shootCooldown: Math.floor(Math.random() * 100)
+                    });
+                }
             }
         } 
     }
@@ -791,14 +826,72 @@ function spawnBoss(){
 
 }
 
-function updateRows(){
+function spawnMinions() {
+    const minionCount = 2 + Math.floor(game.level / 15);
+    const minionTypes = ["normal", "fast", "tank"];
+    const minionWidth = 30;
+    const minionHeight = 30;
+    const maxY = game.canvas.height - minionHeight - 10;
+    const spawnY = Math.min(game.boss.y + game.boss.height, maxY);
     
-    ENEMY_ROWS = 2 + Math.random() * game.level;
-    
-    if(ENEMY_ROWS > 6){
-        ENEMY_ROWS = 2 + Math.random() * 3;
+    for (let i = 0; i < minionCount; i++) {
+        const type = minionTypes[Math.floor(Math.random() * minionTypes.length)];
+        let validPosition = false;
+        let attempts = 0;
+        let newMinion;
+        
+        // Versuche eine freie Position zu finden
+        while (!validPosition && attempts < 20) {
+            attempts++;
+            newMinion = {
+                x: game.boss.x + Math.random() * (game.boss.width - minionWidth),
+                y: spawnY,
+                width: minionWidth,
+                height: minionHeight,
+                color: type === "tank" ? "#FF0000" : type === "fast" ? "#00FF00" : "#FFFF00",
+                health: type === "tank" ? Math.floor(game.level/5) : 1,
+                speed: type === "fast" ? 1.5 : 1,
+                type: type,
+                direction: Math.random() > 0.5 ? 1 : -1,
+                isMinion: true,
+                shootCooldown: 0
+            };
+            
+            // Prüfe Kollision mit bestehenden Minions
+            validPosition = true;
+            for (const existingMinion of game.enemies) {
+                if (existingMinion.isMinion && checkMinionCollision(newMinion, existingMinion)) {
+                    validPosition = false;
+                    break;
+                }
+            }
+        }
+        
+        if (validPosition) {
+            game.enemies.push(newMinion);
+        }
     }
 }
+
+// Spezielle Kollisionsprüfung für Minions mit Pufferbereich
+function checkMinionCollision(minion1, minion2) {
+    const padding = 5; // Pufferbereich um Minions
+    return (
+        minion1.x < minion2.x + minion2.width + padding &&
+        minion1.x + minion1.width + padding > minion2.x &&
+        minion1.y < minion2.y + minion2.height + padding &&
+        minion1.y + minion1.height + padding > minion2.y
+    );
+}
+
+function updateRows(){
+    
+    ENEMY_ROWS = 2 + Math.floor(Math.random() * game.level);
+    
+    if(ENEMY_ROWS > 6)ENEMY_ROWS = 6;
+    if(ENEMY_ROWS < 1)ENEMY_ROWS = 1;
+}
+
 
 function getEnemyColor(row) {
     const colors = ['#FF0000', '#FF6600', '#FFCC00', '#00FF00', '#00CCFF'];
@@ -818,6 +911,8 @@ function gameLoop() {
     updatePlayer();
     updateBullets();
     updateEnemies();
+    if(game.boss)updateBoss();
+    updateMinions();
     updatePowerUps();
     updateEpicUps();
     updateConstUps();
@@ -829,6 +924,7 @@ function gameLoop() {
     // Draw everything
     drawPlayer();
     drawBullets();
+    if(game.boss)drawBoss();
     drawEnemies();
     drawPowerUps();
     drawEpicUps();
@@ -837,7 +933,7 @@ function gameLoop() {
     
     // Check for level completion
     if (game.boss) {
-        game.enemies = [];
+        //game.enemies = [];
     }else if(game.enemies.length === 0){
         game.level++;
         //game.lives++;
@@ -854,7 +950,7 @@ function gameLoop() {
 let ConstDamage = game.player.damage;
 
 function bossDamage(){ 
-    ConstDamage += 5;
+    ConstDamage += 2;
 }
 
 function updatePlayer() {
@@ -911,11 +1007,10 @@ function updatePlayer() {
 
     if (game.player.canonActive) {
         game.player.damage = ConstDamage + 5;
-        updateUI();
     }else{
         game.player.damage = ConstDamage;
-        updateUI();
     }
+    updateUI();
 
     if(game.player.luckActive){
         EPICPOWER_CHANCE = 0.1;
@@ -973,9 +1068,9 @@ function shoot() {
     }
 }
 
-function createBullet(x,spread) {
+function createBullet(x, spread) {
     return {
-        x: game.player.x + 5,
+        x: x - 10,
         y: game.player.y,
         spread: spread,
         width: 30,  // An Bildgröße anpassen
@@ -990,8 +1085,8 @@ function createBullet(x,spread) {
 function updateBullets() {
     // Player bullets
     for (let i = game.bullets.length - 1; i >= 0; i--) {
-        game.bullets[i].y -= game.bullets[i].speed * game.timeSlowFactor;
-        game.bullets[i].x -= game.bullets[i].spread * game.timeSlowFactor;
+        game.bullets[i].y -= game.bullets[i].speed;
+        game.bullets[i].x -= game.bullets[i].spread;
         
         // Remove if off screen
         if (game.bullets[i].y < 0) {
@@ -1032,25 +1127,22 @@ function updateBullets() {
 
 // Update Enemies
 function updateEnemies() {
-
-    //wenn ein Boss gespawnt wird 
-    if(game.boss){
-        updateBoss();
-        return;
-    }
+    if(game.boss) return; // Frühzeitig zurückkehren wenn Boss aktiv
 
     let changeDirection = false;
     
-    // Move enemies
+    // Nur normale Gegner bewegen
     for (const enemy of game.enemies) {
+        if (enemy.isMinion) continue;
+        
         enemy.x += game.enemyDirection * game.enemySpeed * game.timeSlowFactor;
         
-        // Check if any enemy hits the edge
+        // Randkollision prüfen
         if (enemy.x <= 0 || enemy.x + enemy.width >= game.canvas.width) {
             changeDirection = true;
         }
         
-        // Enemy shooting
+        // Schusslogik
         if (enemy.shootCooldown <= 0 && Math.random() < 0.001) {
             game.enemyBullets.push({
                 x: enemy.x + enemy.width / 2 - 2,
@@ -1061,24 +1153,68 @@ function updateEnemies() {
                 color: "#FF5555"
             });
             enemy.shootCooldown = 50 + Math.floor(Math.random() * 50);
-            
         } else {
             enemy.shootCooldown--;
         }
     }
     
-    // Change direction if needed
+    // Richtungswechsel bei Bedarf
     if (changeDirection) {
         game.enemyDirection *= -1;
         for (const enemy of game.enemies) {
+            if (enemy.isMinion) continue;
+            
             enemy.y += 20;
             
-            // Check if enemies reached bottom
-            if (enemy.y + enemy.height > game.canvas.height - 20 ) {
+            // Spielende prüfen
+            if (enemy.y + enemy.height > game.canvas.height - 20) {
                 gameOver();
                 return;
             }
-            
+        }
+    }
+
+    // Minions separat aktualisieren
+    updateMinions();
+}
+
+function updateMinions() {
+    for (let i = game.enemies.length - 1; i >= 0; i--) {
+        const enemy = game.enemies[i];
+        if (!enemy.isMinion) continue;
+
+
+        // Bewegung nach unten
+        enemy.y += enemy.speed * game.timeSlowFactor * 0.2;
+        //seitliche Bewegung
+        enemy.x += enemy.direction * game.enemySpeed * game.timeSlowFactor;
+        
+        if(enemy.x <= 0){
+            enemy.x = 0;
+            enemy.direction = 1;
+        }else if(enemy.x + enemy.width >= game.canvas.width){
+            enemy.x = game.canvas.width - enemy.width;
+            enemy.direction = -1;
+        }
+        
+        // Schießen
+        if (enemy.shootCooldown <= 0 && Math.random() < 0.00001) {
+            game.enemyBullets.push({
+                x: enemy.x + enemy.width / 2 - 2,
+                y: enemy.y + enemy.height,
+                width: 20,
+                height: 20,
+                speed: 4,
+                color: enemy.color
+            });
+            enemy.shootCooldown = 100 / enemy.speed;
+        } else {
+            enemy.shootCooldown--;
+        }
+        
+        // Entfernen wenn außerhalb des Bildschirms
+        if (enemy.y > game.canvas.height + 50) {
+            game.enemies.splice(i, 1);
         }
     }
 }
@@ -1211,7 +1347,8 @@ function getCooldownForPattern(pattern) {
         circle: Math.floor(Math.random()*100)+350,
         spiral: Math.floor(Math.random()*100)+250,
         burst: Math.floor(Math.random()*100)+300,
-        laser: Math.floor(Math.random()*100)+10
+        laser: Math.floor(Math.random()*100)+10,
+        spawn: 400
     };
     return cooldowns[pattern] || 300;
 }
@@ -1223,6 +1360,7 @@ let cooldown2 = 450;
 //Updatet den Boss
 function updateBoss(){
     //Boss bewegungen 
+    if(!game.boss) return;
     if(game.boss){
         // Bewegungsgeschwindigkeit
         const BOSS_SPEED = 2;
@@ -1275,11 +1413,19 @@ function updateBoss(){
             case "laser":
                 laserAttack();
                 break;
+            case "spawn":
+                spawnMinions();
+                break;
         }
     } else {
         game.boss.attackCooldown--;
     }
+
+    if (game.boss.phase === 2 && Math.random() < 0.01) {
+        spawnMinions();
+    }
 }
+
 
 // Update Power-Ups
 function updatePowerUps() {
@@ -1722,24 +1868,80 @@ function drawBullets() {
 }
 
 function drawEnemies() {
-    //Boss erstellen
-    if(game.boss){
-        drawBoss();
-        return;
-    }
     for (const enemy of game.enemies) {
-        const imgIndex = Math.min(Math.floor(enemy.y/50), game.enemyImages.length - 1);
-        const enemyImg = game.enemyImages[imgIndex];
-        
-        if(enemyImg.complete){
-            //Bild erstellen
-            game.ctx.drawImage(
-                enemyImg,
-                enemy.x,
-                enemy.y,
-                enemy.width,
-                enemy.height
-            );
+        if(enemy.isMinion){
+            const img = game.minionImages[enemy.type];
+
+            if (img && img.complete) {
+                game.ctx.drawImage(
+                    img,
+                    enemy.x,
+                    enemy.y,
+                    enemy.width,
+                    enemy.height
+                );
+            }
+            // Fallback: Einfache Formen zeichnen
+            else {
+                game.ctx.fillStyle = enemy.color;
+                
+                if (enemy.type === "tank") {
+                    game.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                    game.ctx.strokeStyle = "#000";
+                    game.ctx.lineWidth = 2;
+                    game.ctx.strokeRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                } 
+                else if (enemy.type === "fast") {
+                    game.ctx.beginPath();
+                    game.ctx.moveTo(enemy.x + enemy.width/2, enemy.y);
+                    game.ctx.lineTo(enemy.x, enemy.y + enemy.height);
+                    game.ctx.lineTo(enemy.x + enemy.width, enemy.y + enemy.height);
+                    game.ctx.closePath();
+                    game.ctx.fill();
+                } 
+                else {
+                    game.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                }
+            }
+
+            const barWidth = enemy.width;
+            const barHeight = 4;
+            const barX = enemy.x;
+            const barY = enemy.y - 10;
+            let maxHealth = 1;
+            if (enemy.type === "tank") maxHealth = Math.floor(game.level/5);
+            
+            const healthPercentage = enemy.health / maxHealth;
+            
+            game.ctx.fillStyle = "#333";
+            game.ctx.fillRect(barX, barY, barWidth, barHeight);
+            
+            if(healthPercentage > 0.5) {
+                game.ctx.fillStyle = "#00FF00";
+            } else if(healthPercentage > 0.25) {
+                game.ctx.fillStyle = "#FFFF00";
+            } else {
+                game.ctx.fillStyle = "#FF0000";
+            }
+            game.ctx.fillRect(barX, barY, barWidth * healthPercentage, barHeight);
+            
+            game.ctx.strokeStyle = "#FFF";
+            game.ctx.lineWidth = 1;
+            game.ctx.strokeRect(barX, barY, barWidth, barHeight);
+        }
+                else{
+                const imgIndex = Math.min(Math.floor(enemy.y/50), game.enemyImages.length - 1);
+                const enemyImg = game.enemyImages[imgIndex];
+                
+                if(enemyImg.complete){
+                    //Bild erstellen
+                    game.ctx.drawImage(
+                        enemyImg,
+                        enemy.x,
+                        enemy.y,
+                        enemy.width,
+                        enemy.height
+                    );
         }else{
             game.ctx.fillStyle = enemy.color;
             game.ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
@@ -1772,7 +1974,7 @@ function drawEnemies() {
         game.ctx.strokeStyle = "#FFF";
         game.ctx.lineWidth = 1;
         game.ctx.strokeRect(barX, barY, barWidth, barHeight);
-
+    }
         // Draw health bar for enemies with health > 1
         /*if (enemy.health > 0) {
             const maxHealth = 1 + Math.floor(game.level/3);
@@ -2142,6 +2344,12 @@ function gameOver() {
     document.getElementById('restartBtn').style.display = 'block';
     document.getElementById('creditsButton').style.display = 'block';
     document.getElementById('OverScreen').style.display = 'flex';
+
+    const currentHighscore = localStorage.getItem("highscore") || 0;
+    if (game.score > currentHighscore) {
+        document.getElementById('finalScore').textContent = game.score;
+        document.getElementById('highscoreInputScreen').style.display = 'flex';
+    }
 }
 
 
@@ -2171,8 +2379,8 @@ function resetGame() {
     game.player.isMagnetic = false;
     game.player.piercingShot = false;
     game.player.damage = 1;
-    game.boss = false; 
-    game.player.x = 240;
+    game.boss = null; 
+    game.player.x = game.canvas.width/2 - game.player.width / 2;
     powerupNames = [];
     epicupNames = [];
     ConstDamage = 1;
@@ -2182,6 +2390,8 @@ function resetGame() {
     document.getElementById('OverScreen').style.display = 'none';
     document.getElementById("gameScreen").style.display = 'block';
     document.getElementById("creditScreen").style.display = 'none';
+    document.getElementById('highscoreInputScreen').style.display = 'none';
+    document.getElementById('highscoreListScreen').style.display = 'none';
     updateUI();
     startLevel();
     bgMusic.play();
@@ -2263,6 +2473,59 @@ document.getElementById('creditsRestartBtn')?.addEventListener('click', function
     startLevel();
 });
 
+function saveHighscore() {
+  const playerName = document.getElementById('playerName').value.trim();
+  if (!playerName) {
+    alert("Bitte gib deinen Namen ein!");
+    return;
+  }
 
+  const newHighscore = {
+    name: playerName,
+    score: game.score,
+    date: new Date().toLocaleDateString()
+  };
 
+  const highscores = JSON.parse(localStorage.getItem('highscores') || '[]');
+  highscores.push(newHighscore);
+  
+  // Sortieren und auf Top 10 begrenzen
+  highscores.sort((a, b) => b.score - a.score);
+  const topScores = highscores.slice(0, 10);
+  
+  localStorage.setItem('highscores', JSON.stringify(topScores));
+  localStorage.setItem('highscore', game.score);
+  
+  document.getElementById('highscoreInputScreen').style.display = 'none';
+  showHighscoreList();
+}
 
+function showHighscoreList() {
+  const highscores = JSON.parse(localStorage.getItem('highscores') || '[]');
+  const tableBody = document.getElementById('highscoreTable').querySelector('tbody');
+  tableBody.innerHTML = '';
+
+  if (highscores.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="4">Noch keine Highscores!</td></tr>';
+  } else {
+    highscores.forEach((entry, index) => {
+      const row = document.createElement('tr');
+      
+      // Highlight aktuellen Score
+      if (entry.score === game.score) {
+        row.style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
+        row.style.fontWeight = 'bold';
+      }
+      
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${entry.name}</td>
+        <td>${entry.score}</td>
+        <td>${entry.date}</td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  document.getElementById('highscoreListScreen').style.display = 'flex';
+}

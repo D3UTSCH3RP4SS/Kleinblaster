@@ -122,7 +122,7 @@ border-radius: 10px;
 text-align: center;
 }
 
-#resumeBtn {
+#resumeBtn, #showHighscoresFromPauseBtn{
 padding: 10px 20px;
 margin-top: 15px;
 cursor: pointer;
@@ -649,4 +649,58 @@ margin: auto;
     align-items: center;
     width: 50px;
     text-align: center;
+}
+
+/*SCOREBOARD*/
+.highscore-input, .highscore-list {
+  background: rgba(10, 8, 32, 0.9);
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  color: white;
+  max-width: 500px;
+  width: 80%;
+}
+
+.highscore-input input {
+  padding: 10px;
+  margin: 15px 0;
+  width: 80%;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+#highscoreTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+#highscoreTable th {
+  background: #005;
+  color: #0ff;
+  padding: 10px;
+}
+
+#highscoreTable td {
+  padding: 8px;
+  border-bottom: 1px solid #00f;
+}
+
+#highscoreTable tr:nth-child(even) {
+  background: rgba(0, 50, 100, 0.3);
+}
+
+#saveHighscoreBtn, #backToMenuBtn {
+  padding: 10px 20px;
+  background: #650668;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#saveHighscoreBtn:hover, #backToMenuBtn:hover {
+  background: #8a0d8e;
 }
