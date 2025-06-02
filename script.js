@@ -103,7 +103,7 @@ const game = {
     score: 0,
     highscore: 0,
     lives: 3,
-    level: 14,
+    level: 1,
     gameOver: false,
     player: {
         x: 0,
@@ -124,7 +124,7 @@ const game = {
         piercingShot: false,
         epicUps: [],
         epicUpTimer: 0,
-        damage: 10,
+        damage: 1,
         isShooting: false, //-- Macht möglich während des Bewegens gedrückt zu halten um zu schießen
         shootCooldown: 0
     },
@@ -1089,11 +1089,11 @@ function updatePlayer() {
     updateUI();
 
     if(game.player.luckActive){
-        EPICPOWER_CHANCE = 0.1;
+        EPICPOWER_CHANCE = 0.15;
         POWERUP_CHANCE = 0.01;
     }else{
-        EPICPOWER_CHANCE = 0.5;//here
-        POWERUP_CHANCE = 0.5//You can change the Power and Epicup Chance
+        EPICPOWER_CHANCE = 0.01;//here
+        POWERUP_CHANCE = 0.15//You can change the Power and Epicup Chance
     }
 
     if (game.player.isShooting) {
