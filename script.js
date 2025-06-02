@@ -422,7 +422,7 @@ async function init() {
         document.getElementById('highscoreListScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'none';
         if(!gameOver)document.getElementById('OverScreen').style.display = 'none';
-        document.getElementById('pauseScreen').style.display = 'flex';
+        if(game.isPaused)document.getElementById('pauseScreen').style.display = 'flex';
     });
     document.getElementById('showHighscoresFromPauseBtn')?.addEventListener('click', function() {
         document.getElementById('pauseScreen').style.display = 'none';
