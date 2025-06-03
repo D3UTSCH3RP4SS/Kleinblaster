@@ -103,7 +103,7 @@ const game = {
     score: 0,
     highscore: 0,
     lives: 3,
-    level: 1,
+    level: 14,
     gameOver: false,
     player: {
         x: 0,
@@ -124,7 +124,7 @@ const game = {
         piercingShot: false,
         epicUps: [],
         epicUpTimer: 0,
-        damage: 1,
+        damage: 14,
         isShooting: false, //-- Macht möglich während des Bewegens gedrückt zu halten um zu schießen
         shootCooldown: 0
     },
@@ -166,7 +166,7 @@ const BOSS_TYPES = {
             phase2: "BossImages/AlienP2.png"
         },
         attackPatterns: {
-            phase1: ["wave", "circle", "spiral"],
+            phase1: ["spiral"/*"wave", "circle", "spiral"*/],
             phase2: ["homing", "burst", "laser", "spawn"]
         },
         projectileSpeed: 1,
@@ -183,7 +183,7 @@ const BOSS_TYPES = {
             phase2: "BossImages/SpaceBossP2.png"
         },
         attackPatterns: {
-            phase1: ["circle", "spiral", "wave"],
+            phase1: ["spiral"/*"circle", "spiral", "wave"*/],
             phase2: ["laser", "homing", "burst", "spawn"]
         },
         projectileSpeed: 1,
@@ -502,7 +502,7 @@ async function init() {
     game.enemyBulletImages.normal.src = 'EnemyBullets/EnemyShot.png';
     game.enemyBulletImages.homing.src = 'EnemyBullets/Star.png';
     game.enemyBulletImages.circle.src = 'EnemyBullets/Star.png';
-    game.enemyBulletImages.spiral.src = 'EnemyBullets/Star.png';
+    game.enemyBulletImages.spiral.src = 'EnemyBullets/Fireball2.png';
     game.enemyBulletImages.burst.src = 'EnemyBullets/Star.png';
     game.enemyBulletImages.laser.src = 'EnemyBullets/Star.png';
 }
@@ -1162,7 +1162,7 @@ function caplives() {
 // Shoot Bullet
 function shoot() {
     const now = Date.now();
-    const fireRate = (game.player.rapidfire) ? 100 : 300;
+    const fireRate = (game.player.rapidfire) ? 100 : 3;
 
 
     if (now - game.lastShotTime > fireRate) {
@@ -1417,8 +1417,8 @@ function homingAttack() {
 
 // Neues Angriffsmuster
 function circleAttack() {
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
+    for (let i = 0; i < 30; i++) {
+        const angle = (i / 30) * Math.PI * 2;
         game.enemyBullets.push({
             x: game.boss.x + game.boss.width / 2,
             y: game.boss.y + game.boss.height,
@@ -1429,24 +1429,46 @@ function circleAttack() {
             imageType: 'circle'
         });
     }
-}
-
-function spiralAttack() {
-    if (!game.boss.spiralAngle) game.boss.spiralAngle = 0;
-
-    for (let i = 0; i < 8; i++) {
-        const angle = game.boss.spiralAngle + (i / 8) * Math.PI * 2;
+    setTimeout(() => {
+    for (let i = 0; i < 25; i++) {
+        const angle = (i / 25) * Math.PI * 2;
         game.enemyBullets.push({
             x: game.boss.x + game.boss.width / 2,
             y: game.boss.y + game.boss.height,
             width: 20,
             height: 20,
-            speed: 3,
+            speed: 2.5,
             angle: angle,
+            imageType: 'circle'
+        });
+    }}, 100);
+    setTimeout(() => {
+    for (let i = 0; i < 20; i++) {
+        const angle = (i / 20) * Math.PI * 2;
+        game.enemyBullets.push({
+            x: game.boss.x + game.boss.width / 2,
+            y: game.boss.y + game.boss.height,
+            width: 20,
+            height: 20,
+            speed: 2.5,
+            angle: angle,
+            imageType: 'circle'
+        });
+    }}, 500);
+}
+
+function spiralAttack() {
+    for (let i = 0; i < 15; i++) {
+        game.enemyBullets.push({
+            x: Math.random() * game.canvas.width - 250,
+            y: -100,
+            width: 40,
+            height: 30,
+            speed: 1 + Math.random() * 3,
+            angle: 1 + Math.random() * 0.5,
             imageType: 'spiral'
         });
     }
-    game.boss.spiralAngle += 0.5;
 }
 
 function burstAttack() {
