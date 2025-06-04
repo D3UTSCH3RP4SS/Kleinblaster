@@ -103,7 +103,7 @@ const game = {
     score: 0,
     highscore: 0,
     lives: 3,
-    level: 14,
+    level: 1,
     gameOver: false,
     player: {
         x: 0,
@@ -124,7 +124,7 @@ const game = {
         piercingShot: false,
         epicUps: [],
         epicUpTimer: 0,
-        damage: 14,
+        damage: 1,
         isShooting: false, //-- Macht möglich während des Bewegens gedrückt zu halten um zu schießen
         shootCooldown: 0
     },
@@ -824,19 +824,31 @@ function startLevel() {
         game.enemyIntro = true;
         game.enemyIntroTimer = 120; // 2 Sekunden bei 60 FPS
 
+        // Startposition seitlich außerhalb
+            const side = Math.floor(Math.random() * 6);
+            let testR = 100;
+            let testL = -600;
         // Startpositionen für Gegner setzen (oben außerhalb des Bildschirms)
         for (const enemy of game.enemies) {
-            // Startposition seitlich außerhalb
-            const side = Math.floor(Math.random() * 2);
+            testR += 50;
+            testL += 50;
             enemy.startX = side === 0 
-                ? -enemy.width 
-                : game.canvas.width + enemy.width;
+                ? enemy.x - game.canvas.width:
+                side === 1 ?
+                game.canvas.width + enemy.x:
+                side === 2 ?
+                game.canvas.width - enemy.x:
+                side === 3 ?
+                testR + 100:
+                side === 4 ?
+                testL:
+                game.canvas.width - enemy.y;
             
             // Zielposition (ursprüngliche Formation)
             enemy.targetX = enemy.x;
             enemy.targetY = enemy.y;
             
-            // Start-Y-Position zufällig
+            // Start-Y-Position selbe
             enemy.startY = enemy.y;
             
             // Aktuelle Position setzen
@@ -1154,15 +1166,10 @@ function caplives() {
     }
 }
 
-//Einfärbung bei Power Ups
-/*if(game.player.powerUp){
-    game.ctx.filter = 'hue-rotate(${Math.random()*360}deg)';
-}*/
-
 // Shoot Bullet
 function shoot() {
     const now = Date.now();
-    const fireRate = (game.player.rapidfire) ? 100 : 3;
+    const fireRate = (game.player.rapidfire) ? 100 : 300;
 
 
     if (now - game.lastShotTime > fireRate) {
@@ -2517,7 +2524,7 @@ function gameOver() {
     document.getElementById('OverScreen').style.display = 'flex';
 
     const currentHighscore = localStorage.getItem("highscore") || 0;
-    if (game.score > currentHighscore) {
+    if (/*game.score > currentHighscore*/true) {
         document.getElementById('finalScore').textContent = game.score;
         document.getElementById('highscoreInputScreen').style.display = 'flex';
     }
