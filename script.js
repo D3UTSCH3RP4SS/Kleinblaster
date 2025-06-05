@@ -321,7 +321,7 @@ const EPICUP_TYPES = {
         image: "Powerups/Time.png",
         duration: 200,
         sound: "PowerupSounds/Slownesspowerup.mp3",
-        effect: () => { game.timeSlowFactor = 0.5; }
+        effect: () => { game.timeSlowFactor = 0.5; game.bulletSpeed = 0.01 }
     }
 };
 
@@ -470,6 +470,7 @@ async function init() {
 
     //Epic/-PowerUPs
     game.timeSlowFactor = 1.0;
+    game.bulletSpeed = 1.0;
     game.scoreMultiplier = 1;
 
     //Bilder laden für Powerups
@@ -1224,17 +1225,17 @@ function updateBullets() {
                 bullet.angle = Math.atan2(dy, dx);
             }
 
-            bullet.x += Math.cos(bullet.angle) * bullet.speed * game.timeSlowFactor;
-            bullet.y += Math.sin(bullet.angle) * bullet.speed * game.timeSlowFactor;
+            bullet.x += Math.cos(bullet.angle) * bullet.speed * game.timeSlowFactor * game.bulletSpeed;
+            bullet.y += Math.sin(bullet.angle) * bullet.speed * game.timeSlowFactor * game.bulletSpeed;
         }
         // Bewegung mit Winkel
         else if (bullet.angle !== undefined) {
-            bullet.x += Math.cos(bullet.angle) * bullet.speed * game.timeSlowFactor;
-            bullet.y += Math.sin(bullet.angle) * bullet.speed * game.timeSlowFactor;
+            bullet.x += Math.cos(bullet.angle) * bullet.speed * game.timeSlowFactor * game.bulletSpeed;
+            bullet.y += Math.sin(bullet.angle) * bullet.speed * game.timeSlowFactor * game.bulletSpeed;
         }
         // Standardbewegung nach unten
         else {
-            bullet.y += bullet.speed * game.timeSlowFactor;
+            bullet.y += bullet.speed * game.timeSlowFactor * game.bulletSpeed;
         }
 
         // Remove if off screen
@@ -1933,6 +1934,7 @@ function resetPowerUpEffect(type) {
         case "Slowness":
             if (!game.player.powerUps.some(p => p.type.name === "Slowness")) {
                 game.timeSlowFactor = 1.0;
+                game.bulletSpeed = 1.0;
             }
             break;
     }
@@ -1949,6 +1951,7 @@ function resetEpicUpEffect(type) {
     if (type.name === "Slowness") {
         if (!game.player.epicUps.some(e => e.type.name === "Slowness")) {
             game.timeSlowFactor = 1.0;
+            game.bulletSpeed = 1.0;
         }
     }
 }
@@ -2515,6 +2518,7 @@ function gameOver() {
     game.player.isMagnetic = false;
     game.player.piercingShot = false;
     game.timeSlowFactor = 1.0;
+    game.bulletSpeed = 1.0;
     game.scoreMultiplier = 1;
 
     updateUI();
@@ -2553,6 +2557,7 @@ function resetGame() {
     game.player.rapidfire = false;
     game.player.luckActive = false;
     game.timeSlowFactor = 1.0;
+    game.bulletSpeed = 1.0;
     game.scoreMultiplier = 1;
     game.player.isMagnetic = false;
     game.player.piercingShot = false;

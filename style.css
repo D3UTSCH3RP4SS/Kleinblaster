@@ -330,7 +330,7 @@ margin: auto;
 #creditScreen {
     position: flex;
     width: 100%;
-    height: 160%;
+    height: 180%;
     display: none;
     flex-direction: column;
     justify-content: center;
