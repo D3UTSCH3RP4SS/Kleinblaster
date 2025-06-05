@@ -2716,3 +2716,126 @@ function showHighscoreList() {
 
     document.getElementById('highscoreListScreen').style.display = 'flex';
 }
+
+// Präzise Messung der Bildwiederholfrequenz
+    async function measureRefreshRate() {
+      return new Promise(resolve => {
+        const numFrames = 60; // Anzahl der zu messenden Frames
+        let startTime = null;
+        let frameCount = 0;
+        let lastTimestamp = 0;
+        
+        // Zeitstempel-Differenzen speichern
+        const deltas = [];
+
+        function measure(timestamp) {
+          if (startTime === null) {
+            startTime = timestamp;
+          }
+          
+          // Zeitdifferenz zum vorherigen Frame berechnen
+          if (lastTimestamp > 0) {
+            const delta = timestamp - lastTimestamp;
+            deltas.push(delta);
+          }
+          
+          lastTimestamp = timestamp;
+          frameCount++;
+          
+          if (frameCount < numFrames) {
+            requestAnimationFrame(measure);
+          } else {
+            // Nur plausible Werte behalten
+            const validDeltas = deltas.filter(d => d > 2 && d < 50);
+            
+            // Wenn nicht genügend valide Werte, Messung als ungültig markieren
+            if (validDeltas.length < numFrames * 0.8) {
+              resolve(0);
+              return;
+            }
+            
+            // Durchschnittliche Framedauer berechnen
+            const avgDelta = validDeltas.reduce((a, b) => a + b, 0) / validDeltas.length;
+            
+            // Hertz berechnen (1000ms / Framedauer)
+            const refreshRate = Math.round(1000 / avgDelta);
+            resolve(refreshRate);
+          }
+        }
+        
+        requestAnimationFrame(measure);
+      });
+    }
+
+    // Überprüft die Bildschirmfrequenz und aktualisiert die Anzeige
+    async function checkRefreshRate() {
+      const rateDisplay = document.getElementById('currentRate');
+      const errorMsg = document.getElementById('errorMessage');
+      const overlay = document.getElementById('refreshRateOverlay');
+      const statusIndicator = document.querySelector('.status-indicator');
+      const warningContent = document.querySelector('.warning-content');
+      
+      try {
+        rateDisplay.textContent = "Messung läuft...";
+        errorMsg.style.display = 'none';
+        statusIndicator.className = 'status-indicator status-checking';
+        
+        const rate = await measureRefreshRate();
+        
+        if (rate > 0) {
+          rateDisplay.textContent = `${rate} Hz`;
+          rateDisplay.className = 'current-rate blink';
+          
+          // Akzeptiere 58-62 Hz als 60 Hz
+          const is60Hz = rate >= 58 && rate <= 62;
+          
+          if (is60Hz) {
+            statusIndicator.className = 'status-indicator status-good';
+            overlay.classList.add('hidden');
+            warningContent.classList.remove('animate');
+          } else {
+            statusIndicator.className = 'status-indicator status-bad';
+            overlay.classList.remove('hidden');
+            warningContent.classList.add('animate');
+          }
+          
+          return is60Hz;
+        } else {
+          rateDisplay.textContent = "Messung fehlgeschlagen";
+          rateDisplay.className = 'current-rate';
+          statusIndicator.className = 'status-indicator status-bad';
+          errorMsg.style.display = 'block';
+          overlay.classList.remove('hidden');
+          warningContent.classList.add('animate');
+          return false;
+        }
+      } catch (e) {
+        console.error("Messfehler:", e);
+        rateDisplay.textContent = "Messung fehlgeschlagen";
+        rateDisplay.className = 'current-rate';
+        statusIndicator.className = 'status-indicator status-bad';
+        errorMsg.style.display = 'block';
+        overlay.classList.remove('hidden');
+        warningContent.classList.add('animate');
+        return false;
+      }
+    }
+
+    // Kontinuierliche Überwachung der Bildschirmfrequenz
+    async function startMonitoring() {
+      // Erste Messung sofort durchführen
+      await checkRefreshRate();
+      
+      // Kontinuierlich alle 3 Sekunden prüfen
+      setInterval(async () => {
+        await checkRefreshRate();
+      }, 3000);
+    }
+
+    // Manueller Neustart der Messung
+    document.getElementById('retryButton').addEventListener('click', async () => {
+      await checkRefreshRate();
+    });
+
+    // Starte die Überwachung
+    window.addEventListener('load', startMonitoring);

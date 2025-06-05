@@ -12,6 +12,36 @@
         <button id="tutorialBtn">Tutorial</button>
     </div>
 
+    <div id="refreshRateOverlay" class="hidden">
+    <div class="warning-content animate">
+      <h1>⚠️ UNTERSTÜTZTE BILDSCHIRMFREQUENZ ERFORDERLICH ⚠️</h1>
+      
+      <div class="status-message">
+        <div class="status-indicator status-bad"></div>
+        <span>Ihr Monitor ist auf <span id="currentRate" class="current-rate blink">Messung läuft...</span> eingestellt</span>
+      </div>
+      
+      <p>Diese Anwendung erfordert eine Bildschirmfrequenz von <span class="current-rate">60 Hz</span></p>
+      
+      <div class="instructions">
+        <p>So beheben Sie das Problem:</p>
+        <ol>
+          <li>Öffnen Sie Ihre Grafikkarten-Systemsteuerung (NVIDIA/AMD/Intel)</li>
+          <li>Gehen Sie zu "Anzeigeeinstellungen"</li>
+          <li>Stellen Sie die Bildwiederholfrequenz auf <strong>60 Hz</strong> ein</li>
+          <li>Klicken Sie auf "Übernehmen"</li>
+          <li>Die Meldung verschwindet automatisch, wenn die richtige Frequenz erkannt wird</li>
+        </ol>
+      </div>
+      
+      <p id="errorMessage" style="color: #ffcc00; display: none;">
+        Messung fehlgeschlagen. Stellen Sie sicher, dass der Browser im Vordergrund ist.
+      </p>
+      
+      <button id="retryButton" style="margin-top:20px; padding:10px 20px; font-size:1.2em;">Jetzt neu prüfen</button>
+    </div>
+  </div>
+
     <div id="tutorialScreen" class="overlay" style="display: none;">
         <div class="tutorialContent">
             <h1>Spielanleitung</h1>
